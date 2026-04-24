@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no"
+    />
+    <meta name="theme-color" content="#2874f0" />
+    <title>Shop online</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  </head>
+  <body class="app-shell app-shop svc-shell">
+    <header class="svc-topbar shop-topbar svc-topbar--tinted">
+      <a href="/" class="svc-back" aria-label="Back to home">‹</a>
+      <div class="svc-topbar__title">
+        <span class="svc-topbar__name">Shop</span>
+        <span class="svc-topbar__sub">Electronics · Fashion · Home & more</span>
+      </div>
+    </header>
+
+    <div class="shop-hero">
+      <label class="shop-search" aria-label="Search products">
+        <span aria-hidden="true">🔎</span>
+        <input id="shopSearch" type="search" enterkeyhint="search" placeholder="Search for products, brands & more" />
+      </label>
+    </div>
+
+    <div class="shop-cats" id="shopCats"></div>
+
+    <main>
+      <div class="shop-grid" id="shopGrid"></div>
+    </main>
+
+    <div class="shop-cart-bar" id="shopCartBar">
+      <div class="shop-cart-bar__inner">
+        <div>
+          <div style="font-size:11px;opacity:0.9" id="shopCartMeta">0 items</div>
+          <div class="shop-cart-bar__total" id="shopCartTotal">₹0</div>
+        </div>
+        <button type="button" class="shop-cart-bar__cta" id="shopCheckoutBtn">Checkout →</button>
+      </div>
+    </div>
+
+    <!-- Checkout modal (reuses svc pattern) -->
+    <div class="svc-checkout-modal" id="shopModal" hidden>
+      <div class="svc-checkout-modal__card">
+        <h2 class="svc-checkout-modal__title">Shipping details</h2>
+        <div class="svc-checkout-modal__map" id="shopMap"></div>
+        <div class="svc-row svc-row--geo">
+          <span aria-hidden="true">📍</span>
+          <span id="shopLocLabel">Set shipping location</span>
+          <button type="button" id="shopUseLoc">Use my location</button>
+        </div>
+        <label class="svc-row"><span>Full name</span><input id="shopName" /></label>
+        <label class="svc-row"><span>Complete address</span><input id="shopAddr" placeholder="House / Flat / Street / Landmark" /></label>
+        <label class="svc-row"><span>Phone</span><input id="shopPhone" /></label>
+        <label class="svc-row"><span>Delivery instructions</span><input id="shopInstr" placeholder="Leave with security / drop at gate" /></label>
+        <div class="svc-checkout__summary" id="shopSummary"></div>
+        <div class="svc-checkout__actions">
+          <button type="button" class="cancel" id="shopCancel">Cancel</button>
+          <button type="button" class="pay" id="shopPay" style="--svc-color:#2874f0">Pay & place order</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="svc-toast" id="toast"></div>
+
+    <nav class="z-tabbar safe-bottom" role="navigation" aria-label="Main">
+      <a href="/" class="z-tab"><span>🏠</span><span>Home</span></a>
+      <a href="/shop.html" class="z-tab z-tab--active" aria-current="page"><span>🛍️</span><span>Shop</span></a>
+      <a href="/rider.html" class="z-tab"><span>📦</span><span>Partner</span></a>
+    </nav>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="/shop.js"></script>
+  </body>
+</html>

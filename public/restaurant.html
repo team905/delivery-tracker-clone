@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no"
+    />
+    <meta name="theme-color" content="#e23744" />
+    <title>Restaurant · zomato</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="app-shell app-resto">
+    <header class="z-resto-topbar">
+      <a class="z-resto-back" href="/food.html" aria-label="Back">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M15.5 19.5L8 12l7.5-7.5"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </a>
+      <div class="z-resto-topbar__mid" id="restoTopbarTitle">Restaurant</div>
+      <button type="button" class="z-icon-btn z-resto-topbar__share" aria-label="Share">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v14"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+    </header>
+
+    <div class="z-resto-hero">
+      <div class="z-resto-hero__bg" id="heroImageWrap">
+        <img id="heroImage" src="" alt="" class="z-resto-hero__img" />
+      </div>
+      <div class="z-resto-hero__fg">
+        <h1 class="z-resto-hero__name" id="heroName">Loading…</h1>
+        <p class="z-resto-hero__cuisine" id="heroCuisine"></p>
+        <div class="z-resto-hero__pills">
+          <span class="z-meta-pill" title="Rating"
+            ><span aria-hidden="true">★</span> <span id="heroRating">—</span></span
+          >
+          <span class="z-meta-pill" title="Delivery"
+            ><span aria-hidden="true">⏱</span> <span id="heroTime">—</span> min</span
+          >
+          <span class="z-meta-pill">₹200 for two</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="z-resto-tabs" role="tablist">
+      <span class="z-resto-tabs__on">Delivery</span>
+      <span class="z-resto-tabs__off" title="Dine-in coming soon">Dine-in</span>
+    </div>
+
+    <main class="z-resto-layout" id="restoMain">
+      <section class="z-resto-menu">
+        <div class="z-resto-menu-head">
+          <h2 class="z-resto-h2">Recommended for you</h2>
+          <label class="z-resto-srch" aria-label="Search in menu">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="2" />
+              <path d="M16 16l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            <input
+              type="search"
+              id="menuSearch"
+              placeholder="Search in menu"
+              enterkeyhint="search"
+              autocomplete="off"
+            />
+          </label>
+        </div>
+        <div id="menuList" class="z-dish-list"></div>
+      </section>
+
+      <aside class="z-cart" id="cartBox" aria-label="Your cart">
+        <div class="z-cart__head">
+          <h3>Your order</h3>
+          <span class="z-cart__live" id="cartLive" hidden>Live order updates on track</span>
+        </div>
+        <div id="cartItems" class="cart-empty z-cart__items">Add items to start an order</div>
+        <div id="billSection" class="z-cart__bill" hidden>
+          <div class="bill-section">
+            <div class="bill-row"><span>Item total</span><span id="billSub">₹0</span></div>
+            <div class="bill-row"><span>Delivery fee</span><span>₹29</span></div>
+            <div class="bill-row"><span>Taxes &amp; charges</span><span id="billTax">₹0</span></div>
+            <div class="bill-row total"><span>Grand total</span><span id="billTotal">₹0</span></div>
+          </div>
+          <button
+            class="btn btn-primary btn-block btn-large cart-cta z-btn-cart"
+            type="button"
+            id="checkoutBtn"
+          >
+            Proceed to checkout
+          </button>
+        </div>
+      </aside>
+    </main>
+
+    <div class="modal-backdrop z-resto-modal" id="checkoutModal" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="checkoutH">
+        <div class="modal-grabber"></div>
+        <h2 id="checkoutH">Delivery address</h2>
+        <p class="muted small" style="margin-bottom: 10px">
+          Drag the pin to your door or use your current location.
+        </p>
+        <div id="addressMap" class="z-addr-map"></div>
+        <div class="form-row two">
+          <div class="field">
+            <label>Full name</label>
+            <input id="customerName" value="Shubham" autocomplete="name" />
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input id="customerPhone" value="+91 98000 11111" autocomplete="tel" inputmode="tel" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Flat, street, landmark</label>
+            <input id="customerAddress" value="Flat 12, Orchid Residency" autocomplete="street-address" />
+          </div>
+        </div>
+        <div class="form-row two">
+          <button class="btn btn-ghost" type="button" id="locateBtn">Use my location</button>
+          <button class="btn btn-primary" type="button" id="placeOrderBtn">Place order</button>
+        </div>
+        <p id="orderMsg" class="muted small" style="margin-top: 10px; min-height: 1.2em"></p>
+      </div>
+    </div>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="/restaurant.js"></script>
+  </body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "delivery-tracker-clone",
+  "version": "1.0.0",
+  "description": "Zomato-style live delivery tracking module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "delivery",
+    "tracking",
+    "socket.io",
+    "leaflet"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  }
+}

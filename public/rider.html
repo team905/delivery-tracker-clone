@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no"
+    />
+    <meta name="theme-color" content="#e23744" />
+    <title>Delivery partner · zomato</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="app-shell app-rider">
+    <header class="z-rider-header">
+      <a class="z-rider-header__back" href="/" aria-label="Back to home">‹</a>
+      <div>
+        <p class="z-rider-header__eyebrow">Delivery partner</p>
+        <h1 class="z-rider-header__title">Console</h1>
+      </div>
+    </header>
+
+    <div class="z-rider-hero">
+      <div>
+        <p class="z-rider-hero__label">You’re signed in as</p>
+        <select id="riderSelect" class="z-rider-select" aria-label="Select rider"></select>
+      </div>
+      <div class="z-rider-status-wrap">
+        <span id="riderConnStatus" class="z-rider-pill z-rider-pill--off">Offline</span>
+      </div>
+    </div>
+
+    <main class="z-rider-main">
+      <section class="z-rider-sec">
+        <h2 class="z-rider-sec__h">New orders</h2>
+        <p class="z-rider-sec__sub">Tap accept to start a delivery</p>
+        <div id="ordersGrid" class="z-rider-list"></div>
+      </section>
+
+      <section class="z-rider-sec">
+        <h2 class="z-rider-sec__h">Active</h2>
+        <p class="z-rider-sec__sub">Ongoing trips from this device</p>
+        <div id="activeGrid" class="z-rider-list"></div>
+      </section>
+    </main>
+
+    <nav class="z-tabbar safe-bottom" role="navigation" aria-label="Main">
+      <a href="/" class="z-tab"
+        ><span class="z-tab__ic" aria-hidden="true"
+          ><svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M4 10.5L12 4l8 6.5V20a1 1 0 01-1 1h-4v-6H9v6H5a1 1 0 01-1-1v-9.5z"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linejoin="round" /></svg></span
+        ><span>Order</span></a
+      >
+      <a href="/rider.html" class="z-tab z-tab--active" aria-current="page"
+        ><span class="z-tab__ic" aria-hidden="true"
+          ><svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="6" width="14" height="10" rx="1" stroke="currentColor" stroke-width="1.6" />
+            <path
+              d="M16 10h4l2 2v2h-2"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round" /></svg></span
+        ><span>Partner</span></a
+      >
+    </nav>
+
+    <div id="toast" class="toast z-toast" hidden></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/rider.js"></script>
+  </body>
+</html>

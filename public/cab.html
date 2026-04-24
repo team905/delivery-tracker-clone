@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no"
+    />
+    <meta name="theme-color" content="#0a5cff" />
+    <title>Cabs · book a ride</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  </head>
+  <body class="app-shell app-cab svc-shell">
+    <header class="svc-topbar cab-topbar svc-topbar--tinted">
+      <a href="/" class="svc-back" aria-label="Back to home">‹</a>
+      <div class="svc-topbar__title">
+        <span class="svc-topbar__name">Book a ride</span>
+        <span class="svc-topbar__sub">Bike · Auto · Sedan · SUV</span>
+      </div>
+    </header>
+
+    <div class="cab-map-wrap">
+      <div class="cab-map" id="cabMap"></div>
+    </div>
+
+    <section class="cab-sheet" aria-label="Book your ride">
+      <div class="cab-inputs" role="group" aria-label="Pickup and drop">
+        <span class="cab-inputs__stop cab-inputs__stop--a" aria-hidden="true"></span>
+        <button type="button" class="cab-inputs__field" data-field="pickup">
+          <strong id="pickupName">Pickup</strong>
+          <span id="pickupAddr">Tap to use current location</span>
+        </button>
+        <span class="cab-inputs__line" aria-hidden="true"></span>
+        <span class="cab-inputs__stop cab-inputs__stop--b" aria-hidden="true"></span>
+        <button type="button" class="cab-inputs__field" data-field="drop">
+          <strong id="dropName">Drop</strong>
+          <span id="dropAddr">Tap the map to set drop</span>
+        </button>
+      </div>
+
+      <div class="cab-pay-row">
+        <span aria-hidden="true">💳</span> Payment via <strong>UPI / Cash</strong>
+        <span class="cab-pay-chip">Change</span>
+      </div>
+
+      <div class="cab-vehicles" id="cabVehicles"></div>
+
+      <button class="cab-book" id="cabBook" disabled>
+        <span>🚕</span>
+        <span id="cabBookText">Choose pickup & drop</span>
+      </button>
+    </section>
+
+    <div class="svc-toast" id="toast"></div>
+
+    <nav class="z-tabbar safe-bottom" role="navigation" aria-label="Main">
+      <a href="/" class="z-tab"><span>🏠</span><span>Home</span></a>
+      <a href="/cab.html" class="z-tab z-tab--active" aria-current="page"><span>🚕</span><span>Cab</span></a>
+      <a href="/rider.html" class="z-tab"><span>📦</span><span>Partner</span></a>
+    </nav>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="/cab.js"></script>
+  </body>
+</html>

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no"
+    />
+    <meta name="theme-color" content="#0c831f" />
+    <title>Daily needs in 10 minutes</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
+  </head>
+  <body class="app-shell app-grocery svc-shell">
+    <header class="svc-topbar">
+      <a href="/" class="svc-back" aria-label="Back to home">‹</a>
+      <div class="svc-topbar__title">
+        <span class="svc-topbar__name" id="storeName">Daily needs</span>
+        <span class="svc-topbar__sub" id="storeSub">Groceries in 10 minutes</span>
+      </div>
+      <span class="groc-eta-pill" id="etaPill">🏃 10 min</span>
+    </header>
+
+    <section class="svc-promise" aria-label="Delivery promise">
+      <span class="svc-promise__emoji">⚡</span>
+      <div>
+        <p class="svc-promise__title">Delivery in minutes · from our dark store</p>
+        <p class="svc-promise__sub">Free delivery on orders above ₹299</p>
+      </div>
+    </section>
+
+    <label class="groc-search" aria-label="Search products">
+      <span aria-hidden="true">🔎</span>
+      <input id="grocSearch" type="search" enterkeyhint="search" placeholder="Search 'milk', 'atta', 'lays'" />
+    </label>
+
+    <div class="groc-cats" role="tablist" id="grocCats"></div>
+
+    <main id="grocMain">
+      <div class="groc-grid" id="grocGrid"></div>
+    </main>
+
+    <!-- Mini cart bar -->
+    <div class="svc-cart-bar" id="cartBar">
+      <div class="svc-cart-bar__inner">
+        <div>
+          <div class="svc-cart-bar__meta"><span id="cartItems">0 items</span> · ₹<span id="cartTotal">0</span></div>
+          <div class="svc-cart-bar__title">View cart</div>
+        </div>
+        <button type="button" class="svc-cart-bar__cta" id="cartCheckoutBtn">Checkout →</button>
+      </div>
+    </div>
+
+    <!-- Checkout modal -->
+    <div class="svc-checkout-modal" id="checkoutModal" hidden>
+      <div class="svc-checkout-modal__card">
+        <h2 class="svc-checkout-modal__title">Confirm delivery</h2>
+        <div class="svc-checkout-modal__map" id="grocMap"></div>
+        <div class="svc-row svc-row--geo">
+          <span aria-hidden="true">📍</span>
+          <span id="grocLocLabel">Set delivery location</span>
+          <button type="button" id="grocUseLoc">Use my location</button>
+        </div>
+        <label class="svc-row"><span>Delivery to (name)</span>
+          <input id="grocName" placeholder="Your name" />
+        </label>
+        <label class="svc-row"><span>Complete address</span>
+          <input id="grocAddr" placeholder="Flat / Apartment / Street" />
+        </label>
+        <label class="svc-row"><span>Phone</span>
+          <input id="grocPhone" placeholder="+91 98765 43210" />
+        </label>
+        <label class="svc-row"><span>Delivery instructions (optional)</span>
+          <input id="grocInstr" placeholder="Leave at door, skip ringing bell, etc." />
+        </label>
+        <div class="svc-checkout__summary" id="grocSummary"></div>
+        <div class="svc-checkout__actions">
+          <button type="button" class="cancel" id="grocCancel">Cancel</button>
+          <button type="button" class="pay" id="grocPay">Pay & place order</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="svc-toast" id="toast"></div>
+
+    <nav class="z-tabbar safe-bottom" role="navigation" aria-label="Main">
+      <a href="/" class="z-tab"><span>🏠</span><span>Home</span></a>
+      <a href="/grocery.html" class="z-tab z-tab--active" aria-current="page"><span>🛒</span><span>Daily</span></a>
+      <a href="/rider.html" class="z-tab"><span>📦</span><span>Partner</span></a>
+    </nav>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="/grocery.js"></script>
+  </body>
+</html>

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no"
+    />
+    <meta name="theme-color" content="#ff6a00" />
+    <title>Parcel · Send anywhere in city</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  </head>
+  <body class="app-shell app-parcel svc-shell">
+    <header class="svc-topbar parcel-topbar svc-topbar--tinted">
+      <a href="/" class="svc-back" aria-label="Back to home">‹</a>
+      <div class="svc-topbar__title">
+        <span class="svc-topbar__name">Send a parcel</span>
+        <span class="svc-topbar__sub">Bike · Auto · Tempo · Truck</span>
+      </div>
+    </header>
+
+    <div class="parcel-steps">
+      <!-- Step 1: stops -->
+      <section class="parcel-card">
+        <div class="parcel-card__head">
+          <h2 class="parcel-card__title">Pickup & Drop</h2>
+          <span class="parcel-card__tag">Step 1</span>
+        </div>
+        <div class="parcel-stops">
+          <div class="parcel-stop" id="pickupStop">
+            <span class="parcel-stop__dot" aria-hidden="true"></span>
+            <div>
+              <span class="parcel-stop__lbl">Pickup from</span>
+              <span class="parcel-stop__addr" id="pickupText">Tap to add sender</span>
+              <span class="parcel-stop__who" id="pickupWho"></span>
+            </div>
+            <button type="button" class="parcel-stop__btn" data-edit="pickup">Edit</button>
+          </div>
+          <div class="parcel-stop parcel-stop--drop" id="dropStop">
+            <span class="parcel-stop__dot" aria-hidden="true"></span>
+            <div>
+              <span class="parcel-stop__lbl">Drop at</span>
+              <span class="parcel-stop__addr" id="dropText">Tap to add receiver</span>
+              <span class="parcel-stop__who" id="dropWho"></span>
+            </div>
+            <button type="button" class="parcel-stop__btn" data-edit="drop">Edit</button>
+          </div>
+        </div>
+        <div style="height:180px;border-radius:12px;overflow:hidden;margin-top:10px;background:#f4f2ec" id="parcelMap"></div>
+      </section>
+
+      <!-- Step 2: package type -->
+      <section class="parcel-card">
+        <div class="parcel-card__head">
+          <h2 class="parcel-card__title">What are you sending?</h2>
+          <span class="parcel-card__tag">Step 2</span>
+        </div>
+        <div class="parcel-pkg-chips" id="pkgChips"></div>
+        <div style="margin-top:12px">
+          <label style="font-size:11px;color:#7a5b3d;font-weight:700">Special instructions (optional)</label>
+          <textarea class="parcel-note" id="pkgNote" placeholder="Fragile, keep upright, call on arrival…"></textarea>
+        </div>
+      </section>
+
+      <!-- Step 3: vehicle -->
+      <section class="parcel-card">
+        <div class="parcel-card__head">
+          <h2 class="parcel-card__title">Choose vehicle</h2>
+          <span class="parcel-card__tag">Step 3</span>
+        </div>
+        <div class="parcel-vehicles" id="parcelVehicles"></div>
+      </section>
+
+      <section style="padding:0 0 80px">
+        <button class="parcel-book" id="parcelBook" disabled>Set pickup & drop to continue</button>
+      </section>
+    </div>
+
+    <!-- Sender/Receiver modal -->
+    <div class="parcel-modal" id="parcelModal" hidden>
+      <div class="parcel-modal__card">
+        <h2 class="parcel-modal__title" id="modalTitle">Sender details</h2>
+        <label class="parcel-modal__field"><span>Name</span><input id="mName" /></label>
+        <label class="parcel-modal__field"><span>Phone</span><input id="mPhone" /></label>
+        <label class="parcel-modal__field"><span>Complete address</span><input id="mAddr" /></label>
+        <div class="svc-row--geo" style="margin:0 0 10px">
+          <span aria-hidden="true">📍</span>
+          <span id="mGeoLabel">Tap the map to pin or use current location</span>
+          <button type="button" id="mUseLoc">Use my location</button>
+        </div>
+        <div class="parcel-modal__actions">
+          <button type="button" class="cancel" id="mCancel">Cancel</button>
+          <button type="button" class="save" id="mSave">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="svc-toast" id="toast"></div>
+
+    <nav class="z-tabbar safe-bottom" role="navigation" aria-label="Main">
+      <a href="/" class="z-tab"><span>🏠</span><span>Home</span></a>
+      <a href="/parcel.html" class="z-tab z-tab--active" aria-current="page"><span>📦</span><span>Parcel</span></a>
+      <a href="/rider.html" class="z-tab"><span>🛵</span><span>Partner</span></a>
+    </nav>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="/parcel.js"></script>
+  </body>
+</html>
