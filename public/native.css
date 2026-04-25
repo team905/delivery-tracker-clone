@@ -524,58 +524,8 @@ body.app-super .super-hero::after {
   gap: 2px;
 }
 
-/* ============ SERVICE TILES — iOS depth + shine ============ */
-.super-grid { gap: 14px !important; }
-.super-tile {
-  border-radius: 24px !important;
-  padding: 18px 16px !important;
-  min-height: 158px !important;
-  box-shadow:
-    0 16px 36px -14px rgba(0,0,0,0.38),
-    0 1px 0 rgba(255,255,255,0.45) inset,
-    0 -28px 52px -28px rgba(255,255,255,0.30) inset !important;
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-}
-.super-tile::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; height: 55%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 100%);
-  pointer-events: none;
-  border-radius: 24px 24px 0 0;
-}
-.super-tile::after {
-  content: "";
-  position: absolute;
-  top: -40%; right: -25%;
-  width: 160px; height: 160px;
-  background: radial-gradient(circle, rgba(255,255,255,0.42), transparent 60%);
-  pointer-events: none;
-  filter: blur(6px);
-  z-index: -1;
-}
-.super-tile__emoji {
-  font-size: 36px !important;
-  margin-bottom: 8px !important;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.25));
-}
-.super-tile__title {
-  font-size: 19px !important;
-  letter-spacing: -0.018em !important;
-  font-weight: 800 !important;
-}
-.super-tile__sub { font-size: 12.5px !important; opacity: 0.95 !important; }
-.super-tile__eta {
-  background: rgba(255,255,255,0.28) !important;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.40);
-  padding: 4px 10px !important;
-  font-size: 11px !important;
-  letter-spacing: 0.01em;
-}
+/* Service tiles intentionally left as-is from styles.css — the original
+   gradient look was preferred. Do not add native-ui overrides here. */
 
 /* ============ QUICK ACTION CHIPS — glass pill ============ */
 .super-quick {
