@@ -1056,7 +1056,7 @@ function listenWithFallback(startPort, attemptsLeft) {
       console.log(`Customer:       http://localhost:${actualPort}/`);
       console.log(`Rider console:  http://localhost:${actualPort}/rider.html`);
     })
-    .listen(startPort);
+    .listen(startPort, "0.0.0.0");
 }
 
 listenWithFallback(BASE_PORT, MAX_PORT_ATTEMPTS);

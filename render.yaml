@@ -1,0 +1,20 @@
+# Render Blueprint — deploy in one go from the dashboard:
+# New + → Blueprint → connect this Git repo → confirm (adjust plan/region if you want).
+# Docs: https://render.com/docs/infrastructure-as-code
+#
+# If your Git repo root is not this Node app, set Root Directory in the dashboard
+# to the folder that contains package.json (e.g. delivery-tracker-clone).
+
+services:
+  - type: web
+    name: delivery-super-app
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
