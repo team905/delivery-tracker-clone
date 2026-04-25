@@ -72,7 +72,28 @@ app.use("/api/partner", partnerRoutes);
 app.use("/api/customer", customerRoutes);
 app.use("/api/public", publicRoutes);
 
-app.use(express.static(path.join(__dirname, "public")));
+/* Static asset middleware with correct content-types and cache hints for the
+ * PWA layer (manifest, service worker, icons). The service worker MUST be
+ * served from the same origin with `Service-Worker-Allowed: /` so we can
+ * register it with scope `/`. */
+app.use(
+  express.static(path.join(__dirname, "public"), {
+    setHeaders(res, filePath) {
+      if (filePath.endsWith(".webmanifest")) {
+        res.setHeader("Content-Type", "application/manifest+json; charset=utf-8");
+        res.setHeader("Cache-Control", "public, max-age=300");
+      } else if (filePath.endsWith("/sw.js") || filePath.endsWith("\\sw.js")) {
+        res.setHeader("Content-Type", "application/javascript; charset=utf-8");
+        /* The SW file itself must NOT be cached so users always pick up the
+         * latest version on next load. */
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Service-Worker-Allowed", "/");
+      } else if (filePath.endsWith(".svg")) {
+        res.setHeader("Cache-Control", "public, max-age=86400");
+      }
+    }
+  })
+);
 
 ensureSuperAdmin();
 

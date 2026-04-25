@@ -1,0 +1,310 @@
+/* =========================================================================
+   native.css — App-shell native feel
+   Loads AFTER styles.css and BEFORE experience.css so it sits between
+   base styles and motion polish. Adds:
+     • System rendering hints
+     • Tap highlight off, press-down feedback for any tappable element
+     • Translucent / blurred sticky topbars (UINavigationBar style)
+     • Native-feel sheet handles + drag affordances
+     • Cross-page slide / fade transitions (no flash)
+     • Standalone-mode tweaks (status-bar safe areas, hide selection)
+     • Hidden scrollbars on touch, slim ones on desktop
+     • Spring keyframes used by all sheets
+   Intentionally low-specificity so existing screens keep their layout.
+   ========================================================================= */
+
+:root {
+  --nat-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --nat-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --nat-dur: 220ms;
+  --nat-dur-fast: 140ms;
+  --nat-blur: saturate(180%) blur(18px);
+  --nat-divider: rgba(60, 60, 67, 0.16);
+  --nat-press-scale: 0.97;
+}
+
+/* ---------- Rendering quality ---------- */
+html, body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Prevent 100vh issues on iOS Safari and the address-bar bounce. */
+  min-height: 100dvh;
+  overscroll-behavior-y: none;
+  /* Subtle accent colour for system controls (caret, focus rings). */
+  accent-color: #ef4f5e;
+}
+body { background-color: #fafafa; }
+
+/* ---------- iOS-style selection handling ---------- */
+.app-shell { -webkit-touch-callout: none; }
+.app-shell input, .app-shell textarea, .app-shell [contenteditable="true"] {
+  -webkit-touch-callout: default;
+  -webkit-user-select: text;
+  user-select: text;
+}
+/* Don't inadvertently kill text selection in articles / addresses */
+.app-shell p, .app-shell .selectable, .app-shell address, .app-shell pre, .app-shell code {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ---------- Tap highlight & press feedback ---------- */
+button, a, [role="button"], [data-tap], .nat-tap,
+.z-tab, .svc-back, .round-btn,
+.cab2-iconbtn, .cab2-vehicle, .cab2-quickitem, .cab2-resultitem,
+.cab2-savedchip, .cab2-confirm, .cab2-pay, .cab2-note, .cab2-promo,
+.cab2-edit, .cab2-modal__opt, .cab2-whereto,
+.svc-cart-bar__cta, .svc-checkout__actions button, .svc-checkout__actions .pay,
+.svc-checkout__actions .cancel, .shop-cart-bar__cta,
+.z-add, .z-qty button, .z-cat, .z-resto-card,
+.groc-cats button, .groc-add, .shop-card__cta,
+.super-tile, .super-quick, .parcel-vehicle, .cab-vehicle {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform var(--nat-dur-fast) var(--nat-spring),
+              filter var(--nat-dur-fast) ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+button:active:not([disabled]), a:active, [role="button"]:active,
+[data-tap]:active, .nat-tap:active,
+.z-tab:active, .svc-back:active, .round-btn:active,
+.cab2-iconbtn:active, .cab2-vehicle:active, .cab2-quickitem:active,
+.cab2-resultitem:active, .cab2-savedchip:active, .cab2-confirm:active:not([disabled]),
+.cab2-pay:active, .cab2-note:active, .cab2-promo:active,
+.cab2-edit:active, .cab2-modal__opt:active, .cab2-whereto:active,
+.svc-cart-bar__cta:active, .svc-checkout__actions button:active,
+.shop-cart-bar__cta:active,
+.z-add:active, .z-cat:active, .z-resto-card:active,
+.groc-cats button:active, .groc-add:active, .shop-card__cta:active,
+.super-tile:active, .super-quick:active, .parcel-vehicle:active, .cab-vehicle:active {
+  transform: scale(var(--nat-press-scale));
+  filter: brightness(0.96);
+}
+
+/* Bigger hit-targets for thumb reach (Apple HIG: minimum 44pt) */
+button, a, [role="button"], .z-tab {
+  min-height: 32px;
+}
+
+/* ---------- Translucent / blurred sticky top bars (UINavigationBar) ---------- */
+.svc-topbar, .z-resto-topbar, .z-rider-header,
+.cab2-topbar, .super-hero, header.app-topbar {
+  -webkit-backdrop-filter: var(--nat-blur);
+  backdrop-filter: var(--nat-blur);
+}
+/* When user scrolls, the sticky topbar gets a subtle separator and full opacity */
+body.is-scrolled .svc-topbar,
+body.is-scrolled .z-resto-topbar,
+body.is-scrolled .z-rider-header {
+  box-shadow: 0 0.5px 0 var(--nat-divider);
+}
+
+/* ---------- Bottom-sheet handle & feel ---------- */
+[data-native-sheet] {
+  position: relative;
+  border-top-left-radius: 22px;
+  border-top-right-radius: 22px;
+  touch-action: pan-y;
+}
+[data-native-sheet]::before {
+  content: "";
+  position: absolute;
+  top: 6px; left: 50%;
+  width: 40px; height: 4px;
+  background: rgba(60, 60, 67, 0.28);
+  border-radius: 999px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+[data-native-sheet].is-dragging {
+  transition: none !important;
+}
+
+/* Make every modal backdrop animate in like an iOS sheet */
+.svc-checkout-modal:not([hidden]),
+.parcel-modal:not([hidden]),
+.cab2-modal:not([hidden]) {
+  animation: nat-modal-in var(--nat-dur) var(--nat-ease) both;
+}
+@keyframes nat-modal-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- Cross-page transitions ---------- */
+/* Modern: View Transitions API (Chrome 111+, Safari 18+) */
+@view-transition { navigation: auto; }
+::view-transition-old(root) {
+  animation: nat-vt-old 200ms var(--nat-ease) both;
+}
+::view-transition-new(root) {
+  animation: nat-vt-new 260ms var(--nat-ease) both;
+}
+@keyframes nat-vt-old {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-4%); }
+}
+@keyframes nat-vt-new {
+  from { opacity: 0; transform: translateX(4%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Fallback for browsers without View Transitions: tiny fade-in on every page */
+@media (prefers-reduced-motion: no-preference) {
+  body { animation: nat-page-in 220ms var(--nat-ease) both; }
+}
+@keyframes nat-page-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* While the user clicks an internal link, fade the outgoing page */
+body.is-leaving { animation: nat-page-out 180ms var(--nat-ease) both; }
+@keyframes nat-page-out {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-4%); }
+}
+
+/* Map-heavy pages (cab/track) skip slide so the map doesn't flash */
+body.app-cab, body.app-cab.is-leaving,
+body.app-track, body.app-track.is-leaving {
+  animation: none !important;
+}
+body.app-cab, body.app-track { opacity: 1 !important; transform: none !important; }
+
+/* ---------- Pull-to-refresh affordance ---------- */
+.nat-ptr {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0) + 6px);
+  left: 50%;
+  width: 32px; height: 32px;
+  margin-left: -16px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.14);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-32px) scale(0.8);
+  transition: transform 220ms var(--nat-spring), opacity 200ms ease;
+  color: #ef4f5e;
+}
+.nat-ptr.is-pulling { opacity: 1; }
+.nat-ptr.is-refreshing { opacity: 1; transform: translateY(8px) scale(1); }
+.nat-ptr svg { width: 18px; height: 18px; }
+.nat-ptr.is-refreshing svg { animation: nat-spin 900ms linear infinite; }
+@keyframes nat-spin { to { transform: rotate(360deg); } }
+
+/* ---------- Hide scrollbars on touch, slim on desktop ---------- */
+@media (pointer: coarse) {
+  *::-webkit-scrollbar { display: none; }
+  * { scrollbar-width: none; }
+}
+@media (pointer: fine) {
+  *::-webkit-scrollbar { width: 6px; height: 6px; }
+  *::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.18);
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.32); }
+  *::-webkit-scrollbar-track { background: transparent; }
+}
+
+/* Smooth momentum scroll within scrollable containers */
+.svc-checkout-modal__card, .cab2-search__body, .cab2-sheet,
+.z-resto-menu, .groc-grid, .shop-grid, .super-feed {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* ---------- Standalone-mode tweaks ---------- */
+body.is-standalone {
+  /* Always reserve space for the status bar overlay on iOS standalone */
+  padding-top: env(safe-area-inset-top, 0);
+}
+body.is-standalone .svc-topbar,
+body.is-standalone .z-resto-topbar,
+body.is-standalone .z-rider-header,
+body.is-standalone .cab2-topbar,
+body.is-standalone header.app-topbar {
+  padding-top: max(env(safe-area-inset-top, 0), 12px);
+}
+/* Hide our own "back to home" links in standalone mode where the system
+   already provides a back gesture. */
+body.is-standalone .nat-hide-standalone { display: none !important; }
+
+/* ---------- Toasts (pure system feel) ---------- */
+.nat-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0) + 88px);
+  transform: translateX(-50%) translateY(40px);
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: rgba(28, 28, 30, 0.92);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+  transition: transform 280ms var(--nat-spring), opacity 220ms ease;
+  max-width: calc(100vw - 32px);
+  text-align: center;
+}
+.nat-toast.is-on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- Install banner (subtle, dismissible) ---------- */
+.nat-install {
+  position: fixed;
+  left: 12px; right: 12px;
+  bottom: calc(env(safe-area-inset-bottom, 0) + 96px);
+  z-index: 9998;
+  background: #ffffff;
+  border: 1px solid var(--nat-divider);
+  border-radius: 18px;
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.14);
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 280ms var(--nat-ease), transform 280ms var(--nat-spring);
+}
+.nat-install.is-on { opacity: 1; transform: translateY(0); }
+.nat-install__icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ef4f5e, #ff8a3d);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 18px;
+  flex-shrink: 0;
+}
+.nat-install__main { flex: 1; min-width: 0; }
+.nat-install__title { font-weight: 800; font-size: 14px; color: #111; }
+.nat-install__sub   { font-size: 12px; color: #555; margin-top: 2px; }
+.nat-install__btn {
+  background: #111; color: #fff; border: none;
+  padding: 9px 14px; border-radius: 999px;
+  font-weight: 700; font-size: 13px; flex-shrink: 0;
+}
+.nat-install__close {
+  background: transparent; border: none; padding: 4px 8px;
+  color: #777; font-size: 18px; flex-shrink: 0;
+}
+
+/* ---------- Form-input keyboard friendliness ---------- */
+input, textarea, select {
+  font-size: 16px; /* prevent iOS auto-zoom on focus */
+}
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid rgba(239, 79, 94, 0.35);
+  outline-offset: 1px;
+}
+
+/* ---------- Reduce motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  body, body.is-leaving { animation: none !important; }
+  *, *::before, *::after { transition-duration: 0.001ms !important; }
+}
