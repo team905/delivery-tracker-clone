@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>Admin · Delivery Super-app</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/role-panels.css" />
+  </head>
+  <body class="rp-body">
+    <div class="rp-shell">
+      <aside class="rp-side">
+        <div class="rp-side-brand">
+          <div class="rp-side-brand-logo">A</div>
+          <div>
+            <div class="rp-side-brand-text">Admin Console</div>
+            <div class="rp-side-brand-sub">Platform control</div>
+          </div>
+        </div>
+        <nav class="rp-side-nav" id="navTabs">
+          <a href="#overview" class="is-active">📊 Overview</a>
+          <a href="#owners">🏪 Business owners</a>
+          <a href="#partners">🛵 Delivery partners</a>
+          <a href="#customers">👥 Customers</a>
+          <a href="#businesses">🏢 Businesses</a>
+          <a href="#categories">🏷️ Categories</a>
+          <a href="#orders">📦 Orders</a>
+          <a href="#payouts">💰 Payouts</a>
+          <a href="#promos">🎟️ Promotions</a>
+          <a href="#disputes">🆘 Disputes</a>
+          <a href="#settings">⚙️ Settings</a>
+          <a href="#audit">📝 Audit log</a>
+        </nav>
+        <div class="rp-side-foot">
+          <div class="rp-side-user">
+            <img id="userAvatar" alt="" />
+            <div>
+              <div class="rp-side-user-name" id="userName">—</div>
+              <div class="rp-side-user-role">Super admin</div>
+            </div>
+          </div>
+          <button class="rp-side-logout" id="logoutBtn">Sign out</button>
+        </div>
+      </aside>
+
+      <main class="rp-main">
+        <div id="page"></div>
+      </main>
+    </div>
+
+    <div class="rp-toast" id="toast"></div>
+
+    <script src="/auth-client.js"></script>
+    <script src="/admin-app.js"></script>
+  </body>
+</html>

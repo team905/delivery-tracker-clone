@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>Business · Delivery Super-app</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/role-panels.css" />
+  </head>
+  <body class="rp-body">
+    <div class="rp-shell">
+      <aside class="rp-side">
+        <div class="rp-side-brand">
+          <div class="rp-side-brand-logo">B</div>
+          <div>
+            <div class="rp-side-brand-text">Business Studio</div>
+            <div class="rp-side-brand-sub" id="bizName">—</div>
+          </div>
+        </div>
+        <nav class="rp-side-nav" id="navTabs">
+          <a href="#dash" class="is-active">📊 Dashboard</a>
+          <a href="#stores">🏪 My businesses</a>
+          <a href="#menu">🍽️ Menu / catalog</a>
+          <a href="#orders">📦 Orders</a>
+          <a href="#earnings">💰 Earnings</a>
+          <a href="#promos">🎟️ Offers</a>
+          <a href="#reviews">⭐ Reviews</a>
+          <a href="#profile">👤 Profile</a>
+        </nav>
+        <div class="rp-side-foot">
+          <div class="rp-side-user">
+            <img id="userAvatar" alt="" />
+            <div>
+              <div class="rp-side-user-name" id="userName">—</div>
+              <div class="rp-side-user-role">Business owner</div>
+            </div>
+          </div>
+          <button class="rp-side-logout" id="logoutBtn">Sign out</button>
+        </div>
+      </aside>
+
+      <main class="rp-main">
+        <div id="page"></div>
+      </main>
+    </div>
+    <div class="rp-toast" id="toast"></div>
+
+    <script src="/auth-client.js"></script>
+    <script src="/business-app.js"></script>
+  </body>
+</html>

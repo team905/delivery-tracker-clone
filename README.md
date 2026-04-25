@@ -1,12 +1,13 @@
-# Live Delivery Tracker (Zomato-like)
+# Delivery Super-app (food, grocery, cab, parcel, shop, multi-role)
 
-End-to-end food delivery flow with live parcel tracking:
+End-to-end multi-service delivery + tracking platform with four user roles:
 
-- Browse restaurants, build a cart, pick delivery location on a map
-- Place an order → rider console gets it live
-- Rider accepts → customer tracking page shows smooth live movement
-- Status stages: Placed → Rider assigned → Picked up → Delivered
-- ETA, rider details, animated marker, auto-zoomed map — Zomato style
+- **Customers** — order food, groceries, cabs, parcels, shopping; live tracking
+- **Business owners** — restaurant/store/shop dashboard with menu, orders, earnings, payouts
+- **Delivery partners** — go online, accept orders, OTP delivery, earnings, payouts
+- **Super admin** — approve businesses & partners, manage categories, settings, payouts, audit log, support tickets
+
+Data persistence is JSON-file-backed in `data/db.json` (auto-created on boot).
 
 ## Run
 
@@ -16,10 +17,42 @@ npm install
 npm start
 ```
 
-- Customer site:    http://localhost:4010/
-- Rider console:    http://localhost:4010/rider.html
+### URLs
+
+| Audience | URL |
+| -------- | --- |
+| Super-app landing (customers) | `http://localhost:4010/` |
+| Login / signup (any role) | `http://localhost:4010/login.html` |
+| Super-admin console | `http://localhost:4010/admin.html` |
+| Business owner studio | `http://localhost:4010/business.html` |
+| Delivery partner hub | `http://localhost:4010/partner.html` |
+| Customer account | `http://localhost:4010/account.html` |
+| Legacy rider console (no login) | `http://localhost:4010/rider.html` |
 
 If 4010 is busy, the server auto-falls back to 4011, 4012, ...
+
+### Default super admin
+
+A super admin is auto-seeded on first boot:
+
+```
+email:    admin@platform.local
+password: admin@123
+```
+
+Override at boot via `SUPER_ADMIN_EMAIL` / `SUPER_ADMIN_PASSWORD` env vars.
+
+### Role flow
+
+1. Owner signs up → admin approves → owner adds a business → admin approves business → owner adds catalog items.
+2. Customer signs up → orders from any active business → tracking page opens.
+3. Partner signs up → admin approves → partner goes online → accepts the order with OTP → completes delivery.
+4. Earnings, commissions and payouts are computed automatically; partners and owners can request payouts; admin processes them.
+5. Customer can rate the order and open support tickets; admin can reply.
+
+### Data model (JSON store)
+
+`data/db.json` contains: users, sessions, businesses, products, serviceCategories, ordersLog, reviews, promotions, payouts, notifications, auditLogs, supportTickets, walletTxns, partnerStatus, settings.
 
 ## Flow
 

@@ -2,9 +2,20 @@ const express = require("express");
 const http = require("http");
 const path = require("path");
 const crypto = require("crypto");
+const cookieParser = require("cookie-parser");
 const { Server } = require("socket.io");
 
 const { restaurants } = require("./src/restaurants");
+const { attachUser, ensureSuperAdmin, findUserById } = require("./src/auth");
+const { db } = require("./src/db");
+const { logOrderCreated, updateOrderLog, attachPartnerToLog } = require("./src/orderLog");
+const { logAudit, notify } = require("./src/audit");
+const authRoutes = require("./src/routes/auth");
+const adminRoutes = require("./src/routes/admin");
+const businessRoutes = require("./src/routes/business");
+const partnerRoutes = require("./src/routes/partner");
+const customerRoutes = require("./src/routes/customer");
+const publicRoutes = require("./src/routes/public");
 const {
   createSimulation,
   advanceSimulation,
@@ -50,7 +61,19 @@ const MAX_PORT_ATTEMPTS = 10;
 const TICK_MS = 1500;
 
 app.use(express.json({ limit: "2mb" }));
+app.use(cookieParser());
+app.use(attachUser);
+
+app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/business", businessRoutes);
+app.use("/api/partner", partnerRoutes);
+app.use("/api/customer", customerRoutes);
+app.use("/api/public", publicRoutes);
+
 app.use(express.static(path.join(__dirname, "public")));
+
+ensureSuperAdmin();
 
 const orders = new Map();
 const riderNotifications = new Map();
@@ -115,7 +138,24 @@ function genShareToken() {
 }
 
 function getRestaurant(id) {
-  return restaurants.find((r) => r.id === id);
+  const seeded = restaurants.find((r) => r.id === id);
+  if (seeded) return seeded;
+  const biz = db().businesses.find((b) => b.id === id && b.status === "active" && b.serviceType === "food");
+  if (!biz) return null;
+  const items = db().products.filter((p) => p.businessId === biz.id && p.available)
+    .map((p) => ({ id: p.id, name: p.name, price: p.price }));
+  return {
+    id: biz.id,
+    name: biz.name,
+    cuisine: (biz.cuisines || []).join(" · ") || "Curated",
+    lat: biz.lat,
+    lng: biz.lng,
+    rating: biz.rating || 4.3,
+    deliveryMinutes: 30,
+    image: biz.image,
+    menu: items,
+    ownerCreated: true
+  };
 }
 
 function addEvent(order, type, message, meta = {}) {
@@ -523,15 +563,41 @@ function buildTransportOrder({ service, pickup, drop, customer, vehicleType, pac
   return order;
 }
 
-function finalizeNewOrder(order) {
+function finalizeNewOrder(order, ctx = {}) {
   orders.set(order.id, order);
+  try {
+    logOrderCreated(order, ctx);
+  } catch (e) {
+    console.warn("orderLog write failed:", e.message);
+  }
   io.to("riders").emit("rider-orders", listRiderVisibleOrders());
   io.to("riders").emit("new-order", { orderId: order.id, serviceType: order.serviceType });
 }
 
 /* ===================== PUBLIC API ===================== */
 app.get("/api/health", (_, res) => res.json({ ok: true, uptime: process.uptime() }));
-app.get("/api/restaurants", (_, res) => res.json({ restaurants }));
+app.get("/api/restaurants", (_, res) => {
+  const dynamicFood = db().businesses
+    .filter((b) => b.serviceType === "food" && b.status === "active")
+    .map((b) => {
+      const items = db().products.filter((p) => p.businessId === b.id && p.available)
+        .slice(0, 12)
+        .map((p) => ({ id: p.id, name: p.name, price: p.price }));
+      return {
+        id: b.id,
+        name: b.name,
+        cuisine: (b.cuisines || []).join(" · ") || "Curated",
+        lat: b.lat,
+        lng: b.lng,
+        rating: b.rating || 4.3,
+        deliveryMinutes: 30,
+        image: b.image,
+        menu: items,
+        ownerCreated: true
+      };
+    });
+  res.json({ restaurants: [...restaurants, ...dynamicFood] });
+});
 app.get("/api/riders", (_, res) => res.json({ riders }));
 
 /* ===== Service discovery ===== */
@@ -632,7 +698,7 @@ app.post("/api/grocery/orders", (req, res) => {
     deliveryInstructions: deliveryInstructions || "Leave at the door",
     deliveryCategory: "grocery"
   });
-  finalizeNewOrder(order);
+  finalizeNewOrder(order, { customerUserId: req.user?.id, businessId: store.id });
   res.status(201).json({ orderId: order.id, shareToken: order.shareToken, order: buildTrackingPayload(order) });
 });
 
@@ -661,7 +727,7 @@ app.post("/api/shop/orders", (req, res) => {
     deliveryInstructions: deliveryInstructions || "Leave with security",
     deliveryCategory: "shop"
   });
-  finalizeNewOrder(order);
+  finalizeNewOrder(order, { customerUserId: req.user?.id, businessId: shopWarehouse.id });
   res.status(201).json({ orderId: order.id, shareToken: order.shareToken, order: buildTrackingPayload(order) });
 });
 
@@ -684,7 +750,7 @@ app.post("/api/cab/orders", (req, res) => {
     deliveryInstructions: deliveryInstructions || "",
     fare
   });
-  finalizeNewOrder(order);
+  finalizeNewOrder(order, { customerUserId: req.user?.id });
   res.status(201).json({ orderId: order.id, shareToken: order.shareToken, order: buildTrackingPayload(order) });
 });
 
@@ -714,7 +780,7 @@ app.post("/api/parcel/orders", (req, res) => {
     deliveryInstructions: deliveryInstructions || "",
     fare
   });
-  finalizeNewOrder(order);
+  finalizeNewOrder(order, { customerUserId: req.user?.id });
   res.status(201).json({ orderId: order.id, shareToken: order.shareToken, order: buildTrackingPayload(order) });
 });
 
@@ -739,7 +805,10 @@ app.post("/api/orders", (req, res) => {
     deliveryCategory: deliveryCategory || "standard"
   });
 
-  finalizeNewOrder(order);
+  finalizeNewOrder(order, {
+    customerUserId: req.user?.id,
+    businessId: restaurant.ownerCreated ? restaurant.id : null
+  });
   res.status(201).json({ orderId: order.id, shareToken: order.shareToken, order: buildTrackingPayload(order) });
 });
 
@@ -763,6 +832,7 @@ app.post("/api/orders/:id/cancel", (req, res) => {
   }
   order.status = "cancelled";
   addEvent(order, "cancelled", "Order cancelled");
+  try { updateOrderLog(order.id, { status: "cancelled" }); } catch {}
   emitOrderUpdate(order);
   res.json({ ok: true, order: buildTrackingPayload(order) });
 });
@@ -897,7 +967,25 @@ app.post("/api/rider/:orderId/accept", async (req, res) => {
   if (order.status !== "placed") return res.status(400).json({ error: "Order already accepted or closed" });
 
   const { riderId } = req.body || {};
-  const chosen = riders.find((r) => r.id === riderId) || riders[0];
+  let chosen;
+  let partnerUser = null;
+  if (req.user && req.user.role === "delivery_partner") {
+    partnerUser = req.user;
+    chosen = {
+      id: req.user.id,
+      name: req.user.name,
+      phone: req.user.phone || "+91 99999 00000",
+      vehicle: req.user.profile?.vehicle || "Two-wheeler",
+      rating: req.user.profile?.rating || 4.8,
+      totalDeliveries: req.user.profile?.totalDeliveries || 0,
+      photo: req.user.avatar,
+      verified: true,
+      backgroundCheckedOn: req.user.profile?.kycDate || null,
+      joinedOn: req.user.createdAt
+    };
+  } else {
+    chosen = riders.find((r) => r.id === riderId) || riders[0];
+  }
 
   const svc = getService(order.serviceType) || SERVICES.food;
   const source = order.pickup
@@ -916,7 +1004,14 @@ app.post("/api/rider/:orderId/accept", async (req, res) => {
   order.rider = chosen;
   order.status = "accepted";
   order.prep = null;
+  order.partnerUserId = partnerUser?.id || null;
   addEvent(order, "accepted", `${chosen.name}: ${svc.labels.accepted}`);
+
+  try {
+    attachPartnerToLog(order.id, { id: partnerUser?.id || chosen.id, name: chosen.name });
+  } catch (e) {
+    console.warn("orderLog accept update failed:", e.message);
+  }
 
   emitOrderUpdate(order);
   res.json({ ok: true, order: buildTrackingPayload(order) });
@@ -1028,6 +1123,7 @@ setInterval(() => {
     }
     if (prevStatus !== "delivered" && order.status === "delivered") {
       addEvent(order, "delivered", L.delivered);
+      try { updateOrderLog(order.id, { status: "delivered" }); } catch {}
     }
 
     emitOrderUpdate(order);

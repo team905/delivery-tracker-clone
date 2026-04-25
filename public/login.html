@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>Sign in · Delivery Super-app</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/role-panels.css" />
+  </head>
+  <body class="auth-body">
+    <main class="auth-shell">
+      <div class="auth-card">
+        <div class="auth-brand">
+          <div class="auth-logo">D</div>
+          <div>
+            <div class="auth-title">Welcome back</div>
+            <div class="auth-sub">Sign in to your account</div>
+          </div>
+        </div>
+
+        <div class="auth-tabs" id="authTabs">
+          <button class="auth-tab is-active" data-mode="login">Sign in</button>
+          <button class="auth-tab" data-mode="signup">Create account</button>
+        </div>
+
+        <form id="authForm" class="auth-form" autocomplete="on" novalidate>
+          <div class="auth-field" id="nameField" hidden>
+            <label>Full name</label>
+            <input type="text" name="name" placeholder="Riya Sharma" />
+          </div>
+          <div class="auth-field" id="phoneField" hidden>
+            <label>Phone</label>
+            <input type="tel" name="phone" placeholder="+91 90000 00000" />
+          </div>
+
+          <div class="auth-field">
+            <label>Email</label>
+            <input type="email" name="email" required placeholder="you@example.com" />
+          </div>
+
+          <div class="auth-field">
+            <label>Password</label>
+            <input type="password" name="password" required placeholder="At least 6 characters" />
+          </div>
+
+          <div class="auth-field" id="roleField" hidden>
+            <label>I am signing up as</label>
+            <div class="auth-roles" id="rolePicker">
+              <button type="button" class="auth-role is-active" data-role="customer">
+                <div class="ar-emoji">🛍️</div>
+                <div class="ar-label">Customer</div>
+                <div class="ar-sub">Order food, rides, parcels</div>
+              </button>
+              <button type="button" class="auth-role" data-role="business_owner">
+                <div class="ar-emoji">🏪</div>
+                <div class="ar-label">Business owner</div>
+                <div class="ar-sub">Restaurant, store, shop</div>
+              </button>
+              <button type="button" class="auth-role" data-role="delivery_partner">
+                <div class="ar-emoji">🛵</div>
+                <div class="ar-label">Delivery partner</div>
+                <div class="ar-sub">Earn on your schedule</div>
+              </button>
+            </div>
+            <div class="auth-helper" id="approvalNote" hidden>
+              Business owner and delivery partner accounts need admin approval before going live.
+            </div>
+          </div>
+
+          <button type="submit" class="auth-submit" id="submitBtn">Sign in</button>
+          <div class="auth-error" id="authError" hidden></div>
+        </form>
+
+        <div class="auth-foot">
+          <a href="/">← Back to home</a>
+          <span>·</span>
+          <span>Admin demo: <code>admin@platform.local</code> / <code>admin@123</code></span>
+        </div>
+      </div>
+    </main>
+
+    <script src="/auth-client.js"></script>
+    <script>
+      const tabs = document.querySelectorAll(".auth-tab");
+      const form = document.getElementById("authForm");
+      const errBox = document.getElementById("authError");
+      const submitBtn = document.getElementById("submitBtn");
+      const nameField = document.getElementById("nameField");
+      const phoneField = document.getElementById("phoneField");
+      const roleField = document.getElementById("roleField");
+      const approvalNote = document.getElementById("approvalNote");
+      const rolePicker = document.getElementById("rolePicker");
+      let mode = new URLSearchParams(location.search).get("mode") === "signup" ? "signup" : "login";
+      let role = "customer";
+
+      function applyMode() {
+        tabs.forEach((t) => t.classList.toggle("is-active", t.dataset.mode === mode));
+        const isSignup = mode === "signup";
+        nameField.hidden = !isSignup;
+        phoneField.hidden = !isSignup;
+        roleField.hidden = !isSignup;
+        submitBtn.textContent = isSignup ? "Create account" : "Sign in";
+        errBox.hidden = true;
+      }
+
+      tabs.forEach((t) => t.addEventListener("click", () => { mode = t.dataset.mode; applyMode(); }));
+
+      rolePicker.addEventListener("click", (e) => {
+        const btn = e.target.closest(".auth-role");
+        if (!btn) return;
+        rolePicker.querySelectorAll(".auth-role").forEach((b) => b.classList.remove("is-active"));
+        btn.classList.add("is-active");
+        role = btn.dataset.role;
+        approvalNote.hidden = role === "customer";
+      });
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errBox.hidden = true;
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Please wait...";
+        try {
+          const fd = new FormData(form);
+          const email = fd.get("email"), password = fd.get("password");
+          let user;
+          if (mode === "login") {
+            user = await Auth.login(email, password);
+          } else {
+            user = await Auth.signup({
+              email, password,
+              name: fd.get("name"),
+              phone: fd.get("phone"),
+              role
+            });
+          }
+          const next = new URLSearchParams(location.search).get("next");
+          window.location.href = next || Auth.homeFor(user.role);
+        } catch (err) {
+          errBox.textContent = err.message || "Something went wrong";
+          errBox.hidden = false;
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = mode === "signup" ? "Create account" : "Sign in";
+        }
+      });
+
+      applyMode();
+    </script>
+  </body>
+</html>

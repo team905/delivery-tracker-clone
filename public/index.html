@@ -24,9 +24,9 @@
               <span class="super-loc__chev" aria-hidden="true">▾</span>
             </button>
           </div>
-          <button type="button" class="super-avatar" aria-label="Account">
-            <img src="https://i.pravatar.cc/80?img=8" alt="" />
-          </button>
+          <a href="#" class="super-avatar" aria-label="Account" id="superAvatar">
+            <img src="https://i.pravatar.cc/80?img=8" alt="" id="superAvatarImg" />
+          </a>
         </div>
 
         <h1 class="super-hero__title">Hi there 👋</h1>
@@ -137,23 +137,40 @@
         ></span>
         <span>Home</span>
       </a>
-      <a href="/food.html" class="z-tab"
+      <a href="/account.html#orders" class="z-tab" id="ordersTab"
         ><span class="z-tab__ic" aria-hidden="true"
           ><svg width="24" height="24" viewBox="0 0 24 24" fill="none"
             ><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg
         ></span>
         <span>Orders</span>
       </a>
-      <a href="/rider.html" class="z-tab"
+      <a href="/login.html?mode=signup" class="z-tab" id="partnerTab"
         ><span class="z-tab__ic" aria-hidden="true"
           ><svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-            ><rect x="3" y="6" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.7" />
-            <path d="M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2" stroke="currentColor" stroke-width="1.7" /></svg
+            ><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.7" />
+            <path d="M4 21a8 8 0 0116 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg
         ></span>
-        <span>Partner</span>
+        <span id="partnerTabLabel">Sign in</span>
       </a>
     </nav>
 
+    <script src="/auth-client.js"></script>
     <script src="/super.js"></script>
+    <script>
+      Auth.me().then((u) => {
+        const av = document.getElementById("superAvatar");
+        const img = document.getElementById("superAvatarImg");
+        const lbl = document.getElementById("partnerTabLabel");
+        const partnerTab = document.getElementById("partnerTab");
+        if (u) {
+          if (img && u.avatar) img.src = u.avatar;
+          if (av) av.href = Auth.homeFor(u.role);
+          if (lbl) lbl.textContent = "Account";
+          if (partnerTab) partnerTab.href = Auth.homeFor(u.role);
+        } else {
+          if (av) av.href = "/login.html";
+        }
+      });
+    </script>
   </body>
 </html>
