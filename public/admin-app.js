@@ -90,9 +90,9 @@
     }
     load();
   }
-  const owners = () => userPage("business_owner", "Business owners");
-  const partners = () => userPage("delivery_partner", "Delivery partners");
-  const customers = () => userPage("customer", "Customers");
+  function owners() { return userPage("business_owner", "Business owners"); }
+  function partners() { return userPage("delivery_partner", "Delivery partners"); }
+  function customers() { return userPage("customer", "Customers"); }
 
   function usersTable(users, role) {
     if (!users.length) return `<div class="rp-empty">No users yet.</div>`;
