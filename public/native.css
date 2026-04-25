@@ -308,3 +308,598 @@ input:focus, textarea:focus, select:focus {
   body, body.is-leaving { animation: none !important; }
   *, *::before, *::after { transition-duration: 0.001ms !important; }
 }
+
+/* =========================================================================
+   ============= NATIVE-UI VISIBLE OVERHAUL ================================
+   ========== iOS/Android-grade depth, floats, glass, springs ==============
+   ========================================================================= */
+
+/* ============ Body — soft warm tone for non-white pages ============ */
+body.app-super, body.app-home, body.app-rider {
+  background:
+    radial-gradient(120% 80% at 50% 0%, #fff5ee 0%, transparent 55%),
+    linear-gradient(180deg, #fdfcfa 0%, #f3f1ec 100%) !important;
+}
+
+/* ============ FLOATING GLASS TAB BAR (iOS 17 style) ============ */
+nav.z-tabbar {
+  left: 14px !important;
+  right: 14px !important;
+  bottom: max(12px, env(safe-area-inset-bottom)) !important;
+  border-radius: 28px !important;
+  border: 1px solid rgba(255,255,255,0.55) !important;
+  border-top: 1px solid rgba(255,255,255,0.55) !important;
+  background: rgba(255,255,255,0.74) !important;
+  -webkit-backdrop-filter: saturate(190%) blur(28px);
+  backdrop-filter: saturate(190%) blur(28px);
+  box-shadow:
+    0 22px 50px -16px rgba(20,20,20,0.28),
+    0 4px 14px -4px rgba(20,20,20,0.10),
+    0 1px 0 rgba(255,255,255,0.65) inset !important;
+  padding: 8px !important;
+  min-height: auto !important;
+  gap: 4px;
+}
+.z-tab {
+  position: relative;
+  border-radius: 22px !important;
+  padding: 8px 6px !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.005em;
+  color: #6b7080 !important;
+  transition:
+    transform .26s cubic-bezier(0.34,1.56,0.64,1),
+    background-color .22s ease,
+    box-shadow .22s ease,
+    color .18s ease !important;
+}
+.z-tab__ic { width: 22px; height: 22px; }
+.z-tab__ic svg {
+  width: 22px; height: 22px;
+  transition: transform .26s cubic-bezier(0.34,1.56,0.64,1);
+}
+.z-tab:active {
+  background: rgba(0,0,0,0.04) !important;
+  transform: scale(0.94);
+}
+.z-tab--active {
+  color: #fff !important;
+  background: linear-gradient(135deg, #ef4f5e 0%, #ff6a3d 100%) !important;
+  box-shadow:
+    0 8px 18px -4px rgba(239,79,94,0.55),
+    0 1px 0 rgba(255,255,255,0.4) inset !important;
+}
+.z-tab--active .z-tab__ic { color: #fff !important; }
+.z-tab--active .z-tab__ic svg { transform: scale(1.06); }
+/* Notification dot anywhere we set [data-badge] on a tab */
+.z-tab[data-badge]::after {
+  content: attr(data-badge);
+  position: absolute;
+  top: 4px; right: 16px;
+  min-width: 16px; height: 16px;
+  padding: 0 4px;
+  background: #ff3b30; color: #fff;
+  font-size: 10px; font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px #fff;
+}
+@media (min-width: 481px) {
+  .app-home nav.z-tabbar,
+  .app-rider nav.z-tabbar,
+  .app-super nav.z-tabbar {
+    max-width: 460px !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    border-radius: 28px !important;
+  }
+}
+
+/* ============ HOME HERO — frosted, big greeting, location pill ============ */
+body.app-super .super-hero {
+  padding: calc(env(safe-area-inset-top) + 18px) 20px 30px;
+  background:
+    radial-gradient(110% 70% at 50% -20%, rgba(255,154,118,0.30), transparent 60%),
+    linear-gradient(180deg, #ffffff 0%, rgba(253,252,250,0.82) 70%, transparent 100%) !important;
+  position: relative;
+}
+body.app-super .super-hero::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -1px; height: 24px;
+  background:
+    radial-gradient(60% 100% at 50% 100%, rgba(0,0,0,0.04), transparent 70%);
+  pointer-events: none;
+}
+.super-hero__title {
+  font-size: 32px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.025em !important;
+  background: linear-gradient(135deg, #1a1a1f 0%, #515563 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 16px 0 6px !important;
+}
+.super-hero__sub {
+  font-size: 15px !important;
+  color: #6a6f7a !important;
+}
+/* Location pill — glass */
+.super-loc__pill {
+  background: rgba(255,255,255,0.78) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.65) !important;
+  padding: 6px 12px 6px 10px !important;
+  border-radius: 999px !important;
+  box-shadow: 0 6px 16px -6px rgba(0,0,0,0.14), 0 1px 0 rgba(255,255,255,0.7) inset !important;
+}
+.super-loc__icon { color: #ef4f5e; }
+.super-loc__label {
+  font-size: 10px !important;
+  letter-spacing: 0.10em !important;
+  color: #ef4f5e !important;
+}
+/* Avatar with online dot + soft ring */
+.super-avatar {
+  width: 42px !important; height: 42px !important;
+  border: 2.5px solid #fff !important;
+  box-shadow:
+    0 8px 20px -4px rgba(239,79,94,0.32),
+    0 0 0 1px rgba(0,0,0,0.04) !important;
+  position: relative;
+}
+.super-avatar::after {
+  content: "";
+  position: absolute; bottom: 1px; right: 1px;
+  width: 11px; height: 11px;
+  background: #34c759;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  pointer-events: none;
+}
+/* iOS-style search field */
+.super-search {
+  background: rgba(118,118,128,0.13) !important;
+  border: none !important;
+  border-radius: 14px !important;
+  height: 50px !important;
+  box-shadow: none !important;
+  padding: 0 14px 0 14px !important;
+  transition: background 0.22s ease, transform 0.22s var(--nat-spring) !important;
+}
+.super-search:focus-within {
+  background: rgba(118,118,128,0.18) !important;
+  transform: translateY(-1px);
+}
+.super-search__ic { color: #8a8e9a !important; }
+.super-search__input {
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  color: #1a1a1f !important;
+}
+.super-search__input::placeholder { color: #8a8e9a !important; }
+.super-search__mic {
+  background: linear-gradient(135deg, #ef4f5e, #ff6a3d) !important;
+  color: #fff !important;
+  border: none !important;
+  width: 36px !important; height: 36px !important;
+  box-shadow: 0 6px 14px -4px rgba(239,79,94,0.5) !important;
+}
+
+/* ============ SECTION TITLES — bigger, bolder ============ */
+.super-section { margin-top: 26px !important; }
+.super-section__head {
+  display: flex !important;
+  align-items: baseline !important;
+  justify-content: space-between !important;
+  margin-bottom: 14px !important;
+  gap: 10px;
+}
+.super-section__title {
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.022em !important;
+  color: #15161c !important;
+}
+.super-section__sub {
+  margin-top: 4px !important;
+  font-size: 13px !important;
+  color: #8a8f98 !important;
+}
+/* The chevron link / "See all" — gracefully appears if a child <a class="see-all">
+   exists; we also render it for every section head with a data-see attr. */
+.super-section__head [data-see-all],
+.super-section__head .see-all {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ef4f5e;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* ============ SERVICE TILES — iOS depth + shine ============ */
+.super-grid { gap: 14px !important; }
+.super-tile {
+  border-radius: 24px !important;
+  padding: 18px 16px !important;
+  min-height: 158px !important;
+  box-shadow:
+    0 16px 36px -14px rgba(0,0,0,0.38),
+    0 1px 0 rgba(255,255,255,0.45) inset,
+    0 -28px 52px -28px rgba(255,255,255,0.30) inset !important;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.super-tile::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 55%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 100%);
+  pointer-events: none;
+  border-radius: 24px 24px 0 0;
+}
+.super-tile::after {
+  content: "";
+  position: absolute;
+  top: -40%; right: -25%;
+  width: 160px; height: 160px;
+  background: radial-gradient(circle, rgba(255,255,255,0.42), transparent 60%);
+  pointer-events: none;
+  filter: blur(6px);
+  z-index: -1;
+}
+.super-tile__emoji {
+  font-size: 36px !important;
+  margin-bottom: 8px !important;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.25));
+}
+.super-tile__title {
+  font-size: 19px !important;
+  letter-spacing: -0.018em !important;
+  font-weight: 800 !important;
+}
+.super-tile__sub { font-size: 12.5px !important; opacity: 0.95 !important; }
+.super-tile__eta {
+  background: rgba(255,255,255,0.28) !important;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.40);
+  padding: 4px 10px !important;
+  font-size: 11px !important;
+  letter-spacing: 0.01em;
+}
+
+/* ============ QUICK ACTION CHIPS — glass pill ============ */
+.super-quick {
+  border-radius: 18px !important;
+  border: none !important;
+  background: rgba(255,255,255,0.85) !important;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 10px 26px -10px rgba(0,0,0,0.10),
+    0 0 0 1px rgba(0,0,0,0.04) inset !important;
+  padding: 14px 16px !important;
+  min-width: 152px !important;
+}
+.super-quick__emoji { font-size: 22px !important; }
+.super-quick__title { font-size: 14.5px !important; font-weight: 700 !important; }
+
+/* ============ OFFERS — frosted glass cards ============ */
+.super-offer {
+  border-radius: 20px !important;
+  padding: 18px 16px !important;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 12px 26px -12px rgba(0,0,0,0.14),
+    0 0 0 1px rgba(255,255,255,0.55) inset !important;
+}
+.super-offer::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 48%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.45), transparent);
+  border-radius: 20px 20px 0 0;
+  pointer-events: none;
+}
+.super-offer__title {
+  font-size: 17px !important;
+  letter-spacing: -0.018em !important;
+  font-weight: 800 !important;
+}
+.super-offer__eyebrow {
+  font-size: 10px !important;
+  letter-spacing: 0.10em !important;
+  font-weight: 800 !important;
+}
+
+/* ============ STICKY CART BAR — floating green pill ============ */
+.svc-cart-bar {
+  bottom: 96px !important;
+  padding: 0 14px !important;
+}
+.svc-cart-bar__inner {
+  border-radius: 22px !important;
+  padding: 12px 16px !important;
+  background: rgba(12,131,31,0.96) !important;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 18px 36px -10px rgba(12,131,31,0.55),
+    0 1px 0 rgba(255,255,255,0.18) inset !important;
+}
+.svc-cart-bar__cta {
+  background: rgba(255,255,255,0.18) !important;
+  border: 1px solid rgba(255,255,255,0.5) !important;
+  padding: 8px 14px !important;
+  font-size: 13px !important;
+}
+.shop-cart-bar { bottom: 96px !important; }
+
+/* ============ MODAL SHEETS — bigger drag handle, rounded top ============ */
+.svc-checkout-modal__card,
+.cab2-modal__card,
+.parcel-modal__card,
+.z-resto-modal {
+  border-radius: 28px 28px 0 0 !important;
+  position: relative !important;
+}
+.svc-checkout-modal__card::before,
+.cab2-modal__card::before,
+.parcel-modal__card::before {
+  content: "";
+  position: absolute;
+  top: 8px; left: 50%;
+  width: 44px; height: 5px;
+  background: rgba(60,60,67,0.32);
+  border-radius: 999px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 5;
+}
+.svc-checkout-modal__card { padding-top: 22px !important; }
+
+/* ============ PRIMARY CTAs — iOS bold filled ============ */
+.cab-book,
+.svc-checkout__pay,
+.cab2-confirm,
+.checkout-pay,
+.svc-checkout__actions .pay,
+button.primary-cta,
+.place-order-btn,
+.parcel-cta {
+  min-height: 54px !important;
+  border-radius: 16px !important;
+  font-size: 16.5px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.01em;
+  box-shadow:
+    0 14px 30px -10px rgba(239,79,94,0.45),
+    0 1px 0 rgba(255,255,255,0.30) inset !important;
+}
+
+/* ============ CARDS — iOS rounded with depth ============ */
+.groc-card, .shop-card, .z-resto-card, .parcel-card {
+  border-radius: 20px !important;
+  border: none !important;
+  box-shadow:
+    0 8px 22px -10px rgba(0,0,0,0.12),
+    0 0 0 1px rgba(0,0,0,0.04) !important;
+  background: #fff !important;
+}
+.z-resto-card { padding: 12px !important; }
+
+/* ============ PROMISE banner — frosted ============ */
+.svc-promise {
+  border-radius: 20px !important;
+  background: linear-gradient(135deg, #ffffff, #f8fafc) !important;
+  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 10px 24px -14px rgba(0,0,0,0.10) !important;
+}
+
+/* ============ Live indicator (pulsing green dot) ============ */
+.live-dot {
+  display: inline-block;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: #34c759;
+  position: relative;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.live-dot::before {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  background: #34c759;
+  animation: nat-live-pulse 1.6s ease-out infinite;
+}
+@keyframes nat-live-pulse {
+  0%   { transform: scale(1);   opacity: 0.55; }
+  100% { transform: scale(2.6); opacity: 0;    }
+}
+
+/* ============ iOS-style switch (drop-in for any checkbox.nat-switch) ============ */
+.nat-switch {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 51px; height: 31px;
+  background: rgba(120,120,128,0.18);
+  border-radius: 999px;
+  position: relative;
+  transition: background 0.25s ease;
+  cursor: pointer;
+  outline: none;
+  flex-shrink: 0;
+}
+.nat-switch::after {
+  content: "";
+  position: absolute; top: 2px; left: 2px;
+  width: 27px; height: 27px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+  transition: transform 0.26s cubic-bezier(0.34,1.56,0.64,1);
+}
+.nat-switch:checked { background: #34c759; }
+.nat-switch:checked::after { transform: translateX(20px); }
+
+/* ============ iOS-style segmented control ============ */
+.nat-segmented {
+  display: inline-flex;
+  background: rgba(118,118,128,0.13);
+  border-radius: 11px;
+  padding: 2px;
+  position: relative;
+}
+.nat-segmented__opt {
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1f;
+  border-radius: 9px;
+  transition: background 0.2s, transform 0.18s;
+  cursor: pointer;
+}
+.nat-segmented__opt[aria-selected="true"] {
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.10), 0 0 0 0.5px rgba(0,0,0,0.04);
+}
+
+/* ============ Restaurant page topbar ============ */
+.z-resto-topbar {
+  background: rgba(255,255,255,0.84) !important;
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+
+/* ============ Categories chips — pill with motion ============ */
+.groc-cat, .z-cat {
+  border-radius: 14px !important;
+  border: 1.5px solid transparent !important;
+  background: rgba(255,255,255,0.85) !important;
+  box-shadow: 0 2px 8px -4px rgba(0,0,0,0.06);
+  transition: transform 0.18s var(--nat-spring), background 0.2s, border-color 0.2s !important;
+}
+.groc-cat--on, .z-cat--active {
+  background: linear-gradient(135deg, #fff, #fff7f7) !important;
+  border-color: #ef4f5e !important;
+  color: #ef4f5e !important;
+}
+
+/* ============ Inputs — iOS rounded gray ============ */
+.cab2-search__input,
+.parcel-input input,
+.svc-checkout input[type="text"],
+.svc-checkout input[type="tel"],
+.svc-checkout textarea {
+  background: rgba(118,118,128,0.10) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 14px 14px !important;
+  font-size: 16px !important;
+}
+.cab2-search__input:focus,
+.parcel-input input:focus,
+.svc-checkout input[type="text"]:focus,
+.svc-checkout input[type="tel"]:focus,
+.svc-checkout textarea:focus {
+  background: rgba(118,118,128,0.16) !important;
+  outline: 2px solid rgba(239,79,94,0.4) !important;
+}
+
+/* ============ Resto card — image bigger radius ============ */
+.z-resto-card .z-resto-card__img,
+.z-resto-card img {
+  border-radius: 14px !important;
+}
+
+/* ============ Floating round buttons (e.g. cab pin actions) ============ */
+.round-btn, .cab2-iconbtn {
+  background: rgba(255,255,255,0.95) !important;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 22px -6px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.04) !important;
+  border: none !important;
+}
+
+/* ============ Rider/Partner header ============ */
+.z-rider-header {
+  background: rgba(255,255,255,0.84) !important;
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+
+/* ============ Auth/login/dashboard cards ============ */
+.role-card, .auth-card, .panel-card, .panel-section {
+  border-radius: 20px !important;
+  border: 1px solid rgba(0,0,0,0.04) !important;
+  box-shadow:
+    0 12px 30px -16px rgba(0,0,0,0.14),
+    0 0 0 1px rgba(255,255,255,0.6) inset !important;
+  background: #fff !important;
+}
+
+/* ============ Helper: any `.nat-card` for new layouts ============ */
+.nat-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow:
+    0 10px 26px -14px rgba(0,0,0,0.12),
+    0 0 0 1px rgba(0,0,0,0.04);
+}
+.nat-card--glass {
+  background: rgba(255,255,255,0.78);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* ============ Big iOS-style list (Settings.app) ============ */
+.nat-list {
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 10px 24px -16px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04);
+}
+.nat-list__row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 0.5px solid rgba(60,60,67,0.16);
+  font-size: 15px;
+  color: #1a1a1f;
+}
+.nat-list__row:last-child { border-bottom: none; }
+.nat-list__row::after {
+  content: "›";
+  margin-left: auto;
+  color: rgba(60,60,67,0.36);
+  font-size: 22px;
+  font-weight: 600;
+  padding-left: 6px;
+}
+.nat-list__row.is-flat::after { content: ""; }
+.nat-list__row .nat-list__ic {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+/* ============ Status bar safe area override for tinted topbars in standalone ============ */
+body.is-standalone .super-hero { padding-top: max(env(safe-area-inset-top), 14px) !important; }
+

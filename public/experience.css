@@ -484,7 +484,9 @@
    ============================================================ */
 
 :root {
-  --tabbar-h: calc(56px + env(safe-area-inset-bottom, 0px));
+  /* Heights account for the new floating glass tabbar (56px tall + 14px
+   * top margin + 14px breathing) so scroll content never collides. */
+  --tabbar-h: calc(82px + env(safe-area-inset-bottom, 0px));
   --cartbar-h: calc(70px + env(safe-area-inset-bottom, 0px));
 }
 
