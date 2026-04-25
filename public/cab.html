@@ -10,56 +10,173 @@
     <title>Cabs · book a ride</title>
     <link rel="stylesheet" href="/styles.css" />
     <link rel="stylesheet" href="/experience.css" />
+    <link rel="stylesheet" href="/cab2.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   </head>
-  <body class="app-shell app-cab svc-shell">
-    <header class="svc-topbar cab-topbar svc-topbar--tinted">
-      <a href="/" class="svc-back" aria-label="Back to home">‹</a>
-      <div class="svc-topbar__title">
-        <span class="svc-topbar__name">Book a ride</span>
-        <span class="svc-topbar__sub">Bike · Auto · Sedan · SUV</span>
-      </div>
-    </header>
+  <body class="app-shell app-cab cab2">
+    <!-- ================= MAP CANVAS (full screen behind sheets) ================= -->
+    <div class="cab2-map" id="cabMap"></div>
 
-    <div class="cab-map-wrap">
-      <div class="cab-map" id="cabMap"></div>
+    <!-- Center pickup pin (Uber style — fixed in viewport center) -->
+    <div class="cab2-centerpin" id="cabCenterPin" aria-hidden="true">
+      <div class="cab2-centerpin__shadow"></div>
+      <div class="cab2-centerpin__pulse"></div>
+      <div class="cab2-centerpin__pin">
+        <span class="cab2-centerpin__dot"></span>
+      </div>
+      <div class="cab2-centerpin__hint" id="cabCenterPinHint">Move map to set pickup</div>
     </div>
 
-    <section class="cab-sheet" aria-label="Book your ride">
-      <div class="cab-inputs" role="group" aria-label="Pickup and drop">
-        <span class="cab-inputs__stop cab-inputs__stop--a" aria-hidden="true"></span>
-        <button type="button" class="cab-inputs__field" data-field="pickup">
-          <strong id="pickupName">Pickup</strong>
-          <span id="pickupAddr">Tap to use current location</span>
+    <!-- Floating top bar -->
+    <header class="cab2-topbar">
+      <a href="/" class="cab2-iconbtn cab2-back" aria-label="Back to home">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M15.5 19.5L8 12l7.5-7.5" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <div class="cab2-topbar__title" id="cab2Title">Where to?</div>
+      <button type="button" class="cab2-iconbtn" id="cab2LocateBtn" aria-label="My location">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- ================= STEP 1 — "Where to?" sheet ================= -->
+    <section class="cab2-sheet cab2-sheet--start is-on" id="sheetStart" aria-label="Choose destination">
+      <div class="cab2-sheet__handle" aria-hidden="true"></div>
+
+      <div class="cab2-pickupbar" id="cab2PickupBar">
+        <span class="cab2-stop cab2-stop--a" aria-hidden="true"></span>
+        <div class="cab2-pickupbar__text">
+          <span class="cab2-pickupbar__label">Pickup</span>
+          <span class="cab2-pickupbar__val" id="cab2PickupLabel">Detecting your location…</span>
+        </div>
+        <button type="button" class="cab2-edit" id="cab2PickupEdit">Change</button>
+      </div>
+
+      <button type="button" class="cab2-whereto" id="cab2WhereToBtn" data-xp-tap>
+        <span class="cab2-whereto__icon" aria-hidden="true">🔍</span>
+        <span class="cab2-whereto__label">Where to?</span>
+        <span class="cab2-whereto__chip">Now ▾</span>
+      </button>
+
+      <div class="cab2-saved" id="cab2Saved" aria-label="Saved places"></div>
+    </section>
+
+    <!-- ================= STEP 2 — Address search overlay ================= -->
+    <section class="cab2-search" id="sheetSearch" aria-label="Set pickup &amp; drop">
+      <div class="cab2-search__head">
+        <button type="button" class="cab2-iconbtn cab2-iconbtn--ghost" id="cab2SearchBack" aria-label="Back">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M15.5 19.5L8 12l7.5-7.5" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </button>
-        <span class="cab-inputs__line" aria-hidden="true"></span>
-        <span class="cab-inputs__stop cab-inputs__stop--b" aria-hidden="true"></span>
-        <button type="button" class="cab-inputs__field" data-field="drop">
-          <strong id="dropName">Drop</strong>
-          <span id="dropAddr">Tap the map to set drop</span>
+        <div class="cab2-search__inputs">
+          <div class="cab2-search__row">
+            <span class="cab2-stop cab2-stop--a" aria-hidden="true"></span>
+            <input type="search" class="cab2-search__input" id="cab2InputPickup"
+              placeholder="Pickup location" autocomplete="off" enterkeyhint="search" />
+            <button type="button" class="cab2-search__clear" data-clear="pickup" aria-label="Clear pickup">×</button>
+          </div>
+          <div class="cab2-search__line" aria-hidden="true"></div>
+          <div class="cab2-search__row">
+            <span class="cab2-stop cab2-stop--b" aria-hidden="true"></span>
+            <input type="search" class="cab2-search__input" id="cab2InputDrop"
+              placeholder="Where to?" autocomplete="off" enterkeyhint="search" />
+            <button type="button" class="cab2-search__clear" data-clear="drop" aria-label="Clear drop">×</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cab2-search__body">
+        <div class="cab2-search__quick">
+          <button type="button" class="cab2-quickitem" id="cab2UseGps" data-xp-tap>
+            <span class="cab2-quickitem__ic">⌖</span>
+            <span class="cab2-quickitem__main">Use my current location</span>
+          </button>
+          <button type="button" class="cab2-quickitem" id="cab2PickOnMap" data-xp-tap>
+            <span class="cab2-quickitem__ic">📍</span>
+            <span class="cab2-quickitem__main">Set location on map</span>
+          </button>
+          <button type="button" class="cab2-quickitem" id="cab2SaveHome" data-xp-tap>
+            <span class="cab2-quickitem__ic">🏠</span>
+            <span class="cab2-quickitem__main" id="cab2HomeLabel">Add Home</span>
+            <span class="cab2-quickitem__sub" id="cab2HomeSub">Save your home address</span>
+          </button>
+          <button type="button" class="cab2-quickitem" id="cab2SaveWork" data-xp-tap>
+            <span class="cab2-quickitem__ic">💼</span>
+            <span class="cab2-quickitem__main" id="cab2WorkLabel">Add Work</span>
+            <span class="cab2-quickitem__sub" id="cab2WorkSub">Save your work address</span>
+          </button>
+        </div>
+
+        <div class="cab2-search__results" id="cab2Results"></div>
+
+        <div class="cab2-search__section" id="cab2RecentWrap">
+          <div class="cab2-search__section-title">Recent</div>
+          <div class="cab2-search__list" id="cab2Recent"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= STEP 3 — Choose vehicle / confirm ================= -->
+    <section class="cab2-sheet cab2-sheet--vehicles" id="sheetVehicles" aria-label="Choose your ride">
+      <div class="cab2-sheet__handle" aria-hidden="true"></div>
+
+      <div class="cab2-route">
+        <div class="cab2-route__col">
+          <span class="cab2-stop cab2-stop--a"></span>
+          <span class="cab2-route__addr" id="cab2RoutePickup">Pickup</span>
+        </div>
+        <div class="cab2-route__div"></div>
+        <div class="cab2-route__col">
+          <span class="cab2-stop cab2-stop--b"></span>
+          <span class="cab2-route__addr" id="cab2RouteDrop">Drop</span>
+        </div>
+        <button type="button" class="cab2-edit cab2-route__edit" id="cab2RouteEdit">Edit</button>
+      </div>
+
+      <div class="cab2-route-meta">
+        <span><span class="cab2-route-meta__label">Distance</span> <strong id="cab2DistKm">—</strong></span>
+        <span><span class="cab2-route-meta__label">Trip time</span> <strong id="cab2TripMin">—</strong></span>
+        <span class="cab2-surge" id="cab2Surge" hidden>⚡ Surge × <span id="cab2SurgeMul">1.0</span></span>
+      </div>
+
+      <div class="cab2-vehicles" id="cab2Vehicles"></div>
+
+      <div class="cab2-payrow">
+        <button type="button" class="cab2-pay" id="cab2PayBtn">
+          <span class="cab2-pay__ic" aria-hidden="true">💳</span>
+          <span class="cab2-pay__lbl" id="cab2PayLabel">UPI</span>
+          <span class="cab2-pay__chev">▾</span>
+        </button>
+        <button type="button" class="cab2-note" id="cab2NoteBtn">
+          <span aria-hidden="true">📝</span>
+          <span id="cab2NoteLabel">Note for driver</span>
+        </button>
+        <button type="button" class="cab2-promo" id="cab2PromoBtn">
+          <span aria-hidden="true">🎟️</span>
+          <span>Offers</span>
         </button>
       </div>
 
-      <div class="cab-pay-row">
-        <span aria-hidden="true">💳</span> Payment via <strong>UPI / Cash</strong>
-        <span class="cab-pay-chip">Change</span>
-      </div>
-
-      <div class="cab-vehicles" id="cabVehicles"></div>
-
-      <button class="cab-book" id="cabBook" disabled>
-        <span>🚕</span>
-        <span id="cabBookText">Choose pickup & drop</span>
+      <button class="cab2-confirm" id="cab2ConfirmBtn" disabled>
+        <span class="cab2-confirm__lbl" id="cab2ConfirmLabel">Choose a ride</span>
+        <span class="cab2-confirm__arrow" aria-hidden="true">→</span>
       </button>
     </section>
 
-    <div class="svc-toast" id="toast"></div>
+    <!-- ================= small action sheets (payment / note / schedule) ================= -->
+    <div class="cab2-modal" id="cab2Modal" hidden>
+      <div class="cab2-modal__card" id="cab2ModalCard"></div>
+    </div>
 
-    <nav class="z-tabbar safe-bottom" role="navigation" aria-label="Main">
-      <a href="/" class="z-tab"><span>🏠</span><span>Home</span></a>
-      <a href="/cab.html" class="z-tab z-tab--active" aria-current="page"><span>🚕</span><span>Cab</span></a>
-      <a href="/rider.html" class="z-tab"><span>📦</span><span>Partner</span></a>
-    </nav>
+    <div class="svc-toast" id="toast"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="/experience.js"></script>

@@ -1,5 +1,6 @@
 const express = require("express");
 const http = require("http");
+const https = require("https");
 const path = require("path");
 const crypto = require("crypto");
 const cookieParser = require("cookie-parser");
@@ -639,6 +640,113 @@ app.get("/api/shop/products/:id", (req, res) => {
   const product = shopProducts.find((p) => p.id === req.params.id);
   if (!product) return res.status(404).json({ error: "Product not found" });
   res.json({ product });
+});
+
+/* ===== Geocoding proxy (Nominatim / OpenStreetMap) =====
+ * Uses node https to avoid extra deps. Caches results in-memory for 1h
+ * to be polite to the public endpoint and stay within usage policy.
+ */
+const NOMINATIM_HOST = "nominatim.openstreetmap.org";
+const NOMINATIM_UA = "QuickGoDeliveryTracker/1.0 (https://github.com/team905)";
+const geocodeCache = new Map();
+const GEOCODE_TTL_MS = 60 * 60 * 1000;
+
+function geocodeFetch(pathAndQuery) {
+  const cached = geocodeCache.get(pathAndQuery);
+  if (cached && Date.now() - cached.at < GEOCODE_TTL_MS) {
+    return Promise.resolve(cached.body);
+  }
+  return new Promise((resolve, reject) => {
+    const req = https.get(
+      {
+        host: NOMINATIM_HOST,
+        path: pathAndQuery,
+        headers: {
+          "User-Agent": NOMINATIM_UA,
+          "Accept-Language": "en"
+        },
+        timeout: 6000
+      },
+      (res) => {
+        const chunks = [];
+        res.on("data", (c) => chunks.push(c));
+        res.on("end", () => {
+          try {
+            const body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+            geocodeCache.set(pathAndQuery, { at: Date.now(), body });
+            resolve(body);
+          } catch (e) { reject(e); }
+        });
+      }
+    );
+    req.on("timeout", () => { req.destroy(new Error("timeout")); });
+    req.on("error", reject);
+  });
+}
+
+app.get("/api/geocode/search", async (req, res) => {
+  const q = String(req.query.q || "").trim();
+  if (q.length < 2) return res.json({ results: [] });
+  const lat = req.query.lat ? Number(req.query.lat) : null;
+  const lng = req.query.lng ? Number(req.query.lng) : null;
+  /* Bias the search to a viewbox around the user when we have it, so
+   * "marine drive" returns the Mumbai one for Mumbai users etc. */
+  let viewbox = "";
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    const d = 0.6;
+    viewbox = `&viewbox=${lng - d},${lat + d},${lng + d},${lat - d}&bounded=0`;
+  }
+  const url = `/search?format=json&addressdetails=1&limit=8&countrycodes=in&q=${encodeURIComponent(q)}${viewbox}`;
+  try {
+    const data = await geocodeFetch(url);
+    const results = (Array.isArray(data) ? data : []).map((r) => ({
+      id: r.place_id,
+      label: r.display_name.split(",").slice(0, 2).join(",").trim(),
+      sublabel: r.display_name.split(",").slice(2).join(",").trim(),
+      lat: Number(r.lat),
+      lng: Number(r.lon),
+      type: r.type,
+      raw: r.display_name
+    }));
+    res.json({ results });
+  } catch (e) {
+    res.json({ results: [], error: "geocode_failed" });
+  }
+});
+
+app.get("/api/geocode/reverse", async (req, res) => {
+  const lat = Number(req.query.lat);
+  const lng = Number(req.query.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    return res.status(400).json({ error: "lat & lng required" });
+  }
+  const url = `/reverse?format=json&addressdetails=1&zoom=18&lat=${lat}&lon=${lng}`;
+  try {
+    const data = await geocodeFetch(url);
+    if (!data || !data.display_name) return res.json({ address: null });
+    const parts = data.display_name.split(",").map((s) => s.trim());
+    const a = data.address || {};
+    /* Compose a short, friendly headline like Uber: prefer named POI / road */
+    const headline =
+      a.amenity || a.shop || a.building || a.road ||
+      a.neighbourhood || a.suburb || parts[0];
+    const sub = [a.suburb, a.city || a.town || a.village, a.state]
+      .filter(Boolean)
+      .filter((v, i, arr) => arr.indexOf(v) === i)
+      .slice(0, 2)
+      .join(", ");
+    res.json({
+      address: {
+        label: headline || parts[0],
+        sublabel: sub || parts.slice(1, 3).join(", "),
+        full: data.display_name,
+        lat,
+        lng
+      }
+    });
+  } catch (e) {
+    res.json({ address: null, error: "reverse_failed" });
+  }
 });
 
 /* ===== Cab & parcel vehicle lookup + fare preview ===== */
