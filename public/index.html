@@ -10,6 +10,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>Services · QuickGo</title>
     <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/experience.css" />
   </head>
   <body class="app-shell app-super">
     <div class="super-surface">
@@ -29,8 +30,8 @@
           </a>
         </div>
 
-        <h1 class="super-hero__title">Hi there 👋</h1>
-        <p class="super-hero__sub">What would you like to do today?</p>
+        <h1 class="super-hero__title" id="superGreeting">Hi there 👋</h1>
+        <p class="super-hero__sub" id="superTagline">What would you like to do today?</p>
 
         <div class="super-search" role="search">
           <span class="super-search__ic" aria-hidden="true">
@@ -155,6 +156,7 @@
     </nav>
 
     <script src="/auth-client.js"></script>
+    <script src="/experience.js"></script>
     <script src="/super.js"></script>
     <script>
       Auth.me().then((u) => {
@@ -162,13 +164,26 @@
         const img = document.getElementById("superAvatarImg");
         const lbl = document.getElementById("partnerTabLabel");
         const partnerTab = document.getElementById("partnerTab");
+        const greet = document.getElementById("superGreeting");
         if (u) {
           if (img && u.avatar) img.src = u.avatar;
           if (av) av.href = Auth.homeFor(u.role);
           if (lbl) lbl.textContent = "Account";
           if (partnerTab) partnerTab.href = Auth.homeFor(u.role);
+          if (greet) greet.textContent = window.XP ? XP.timeGreeting(u.name || u.email) : `Hi ${u.name || "there"}`;
         } else {
           if (av) av.href = "/login.html";
+          if (greet) greet.textContent = window.XP ? XP.timeGreeting() : "Hi there 👋";
+        }
+        const tagline = document.getElementById("superTagline");
+        if (tagline && window.XP) {
+          XP.rotate(tagline, [
+            "What would you like to do today?",
+            "Hungry? Pick a cuisine below 🍕",
+            "Need groceries? 10-min delivery ⚡",
+            "Going somewhere? Book a ride 🚖",
+            "Send a parcel across the city 📦"
+          ]);
         }
       });
     </script>

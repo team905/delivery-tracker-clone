@@ -1,0 +1,476 @@
+/* ========================================================================
+   experience.css — modern polish layer for the customer app
+   Adds motion tokens, skeleton shimmers, ripple, toast, sticky cart,
+   micro-interactions and a few new visual upgrades.
+   Loads on top of styles.css. Never overrides core layout — only enhances.
+   ======================================================================== */
+
+:root {
+  --xp-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --xp-ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --xp-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --xp-rad-sm: 10px;
+  --xp-rad: 14px;
+  --xp-rad-lg: 20px;
+  --xp-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(15, 23, 42, 0.04);
+  --xp-shadow: 0 4px 14px rgba(15, 23, 42, 0.06), 0 12px 28px rgba(15, 23, 42, 0.06);
+  --xp-shadow-lg: 0 10px 30px rgba(15, 23, 42, 0.10), 0 30px 60px rgba(15, 23, 42, 0.12);
+  --xp-accent: #ef4f5e;
+  --xp-veg: #1ca05a;
+  --xp-nv: #c0392b;
+  --xp-gold: #ffb300;
+}
+
+@keyframes xp-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes xp-pop { 0% { transform: scale(.6); opacity: 0; } 70% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes xp-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+@keyframes xp-shimmer { 0% { background-position: -300px 0; } 100% { background-position: 300px 0; } }
+@keyframes xp-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes xp-ripple { to { transform: scale(2.6); opacity: 0; } }
+@keyframes xp-toast-in { from { opacity: 0; transform: translate(-50%, 16px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes xp-spin { to { transform: rotate(360deg); } }
+@keyframes xp-burst {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  60% { opacity: 1; }
+  100% { transform: translate(var(--xp-tx, 0), var(--xp-ty, 0)) scale(0.4); opacity: 0; }
+}
+@keyframes xp-bg-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.xp-fade-in { animation: xp-fade-in .45s var(--xp-ease) both; }
+.xp-pop { animation: xp-pop .35s var(--xp-spring) both; }
+.xp-pulse { animation: xp-pulse .55s var(--xp-spring); }
+
+/* ======== Skeleton shimmer (universal) ======== */
+.xp-skel {
+  position: relative;
+  background: linear-gradient(90deg, #ececf1 0%, #f6f6fa 40%, #ececf1 80%);
+  background-size: 600px 100%;
+  animation: xp-shimmer 1.2s linear infinite;
+  border-radius: var(--xp-rad-sm);
+  color: transparent !important;
+}
+.xp-skel-card {
+  background: #fff;
+  border-radius: var(--xp-rad);
+  padding: 12px;
+  box-shadow: var(--xp-shadow-sm);
+  display: grid; gap: 10px;
+}
+.xp-skel-line { height: 12px; border-radius: 6px; background: linear-gradient(90deg, #ececf1, #f6f6fa, #ececf1); background-size: 600px 100%; animation: xp-shimmer 1.2s linear infinite; }
+.xp-skel-line.w-50 { width: 50%; }
+.xp-skel-line.w-30 { width: 30%; }
+.xp-skel-line.w-70 { width: 70%; }
+.xp-skel-block { height: 130px; border-radius: var(--xp-rad-sm); background: linear-gradient(90deg, #ececf1, #f6f6fa, #ececf1); background-size: 600px 100%; animation: xp-shimmer 1.2s linear infinite; }
+.xp-skel-circle { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(90deg, #ececf1, #f6f6fa, #ececf1); background-size: 600px 100%; animation: xp-shimmer 1.2s linear infinite; }
+
+/* ======== Ripple (added by experience.js to most clickable surfaces) ======== */
+.xp-rippler { position: relative; overflow: hidden; }
+.xp-ripple-ink {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  background: currentColor; opacity: 0.2;
+  width: 12px; height: 12px;
+  transform: translate(-50%, -50%) scale(1);
+  animation: xp-ripple .55s var(--xp-ease) forwards;
+  mix-blend-mode: multiply;
+}
+
+/* ======== Tap feedback ======== */
+[data-xp-tap] { transition: transform .12s var(--xp-ease); will-change: transform; }
+[data-xp-tap]:active { transform: scale(0.96); }
+
+/* ======== Toast ======== */
+.xp-toast-host { position: fixed; left: 50%; bottom: calc(76px + env(safe-area-inset-bottom, 0)); transform: translateX(-50%); z-index: 12000; display: flex; flex-direction: column; gap: 6px; align-items: center; pointer-events: none; }
+.xp-toast {
+  background: rgba(20, 22, 28, 0.96);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 13px; font-weight: 600; letter-spacing: -0.005em;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  animation: xp-toast-in .25s var(--xp-ease) both;
+  display: flex; align-items: center; gap: 8px;
+  pointer-events: auto;
+  max-width: min(86vw, 420px);
+}
+.xp-toast.xp-toast--success { background: linear-gradient(135deg, #15a363, #0e8a52); }
+.xp-toast.xp-toast--error { background: linear-gradient(135deg, #e23d4d, #c82333); }
+.xp-toast.xp-toast--info { background: rgba(20, 22, 28, 0.96); }
+.xp-toast-emoji { font-size: 16px; line-height: 1; }
+
+/* ======== Fly-to-cart marble (created by experience.js) ======== */
+.xp-fly {
+  position: fixed; pointer-events: none; z-index: 11000;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff, #ef4f5e 65%);
+  box-shadow: 0 6px 18px rgba(239, 79, 94, 0.45);
+  transition: transform .7s var(--xp-ease), opacity .25s ease .45s, scale .3s ease .55s;
+  will-change: transform, opacity;
+}
+
+/* ======== Confetti burst host ======== */
+.xp-confetti {
+  position: fixed; inset: 0; pointer-events: none; z-index: 13000; overflow: hidden;
+}
+.xp-confetti span {
+  position: absolute; left: 50%; top: 50%;
+  width: 10px; height: 14px; border-radius: 2px;
+  background: var(--xp-accent);
+  transform-origin: center;
+  animation: xp-burst 1.2s var(--xp-ease) forwards;
+}
+
+/* ======== Empty / loader spinner ======== */
+.xp-spinner {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 3px solid #eee; border-top-color: var(--xp-accent);
+  animation: xp-spin .8s linear infinite;
+  display: inline-block;
+}
+
+/* ============================================================
+   Landing (super-app) glow-ups
+   ============================================================ */
+.app-super { background: #fafafd !important; }
+.app-super .super-surface {
+  background: radial-gradient(1200px 600px at -10% -20%, #fff5f5 0%, transparent 55%),
+              radial-gradient(1000px 500px at 110% 0%, #eef3ff 0%, transparent 60%),
+              #fafafd;
+}
+.app-super .super-hero {
+  position: relative;
+}
+.app-super .super-hero::after {
+  content: ""; position: absolute; inset: -40px -20px auto -20px; height: 280px;
+  background: radial-gradient(800px 220px at 30% 0%, rgba(255, 200, 70, 0.18), transparent 60%),
+              radial-gradient(700px 220px at 80% 0%, rgba(110, 130, 255, 0.18), transparent 60%);
+  z-index: -1; pointer-events: none;
+}
+.app-super .super-hero__title {
+  background: linear-gradient(120deg, #1a1a1a, #ef4f5e 50%, #ff8a3d 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: xp-bg-shift 6s ease-in-out infinite;
+  font-weight: 800; letter-spacing: -0.02em;
+}
+.app-super .super-search {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15,23,42,0.06);
+}
+.app-super .super-search:focus-within { box-shadow: 0 12px 30px rgba(239,79,94,0.18); border-color: rgba(239,79,94,0.4); }
+
+.app-super .super-tile {
+  position: relative;
+  transition: transform .25s var(--xp-ease), box-shadow .25s var(--xp-ease);
+  box-shadow: var(--xp-shadow-sm);
+}
+.app-super .super-tile:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: var(--xp-shadow-lg);
+}
+.app-super .super-tile::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(135deg, rgba(255,255,255,0.18), transparent 35%);
+}
+.app-super .super-tile__emoji {
+  display: inline-block; transition: transform .35s var(--xp-spring);
+}
+.app-super .super-tile:hover .super-tile__emoji { transform: scale(1.18) rotate(-6deg); }
+.app-super .super-tile__eta { backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); background: rgba(0,0,0,0.18); }
+
+.app-super .super-quick {
+  box-shadow: var(--xp-shadow-sm);
+  transition: transform .2s var(--xp-ease), box-shadow .2s var(--xp-ease);
+}
+.app-super .super-quick:hover { transform: translateY(-2px); box-shadow: var(--xp-shadow); }
+
+.app-super .super-offer {
+  position: relative; overflow: hidden;
+  transition: transform .25s var(--xp-ease), box-shadow .25s var(--xp-ease);
+  box-shadow: var(--xp-shadow-sm);
+}
+.app-super .super-offer:hover { transform: translateY(-3px); box-shadow: var(--xp-shadow); }
+.app-super .super-offer::after {
+  content: ""; position: absolute; right: -30px; top: -30px; width: 110px; height: 110px;
+  border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.5), transparent 70%);
+  pointer-events: none;
+}
+
+/* Animated rotating tagline */
+.app-super .super-hero__sub { position: relative; min-height: 22px; }
+
+/* Fresh trending strip */
+.xp-strip {
+  display: flex; gap: 8px; overflow-x: auto; padding: 4px 16px 14px;
+  scroll-snap-type: x mandatory;
+}
+.xp-strip::-webkit-scrollbar { display: none; }
+.xp-chip {
+  flex: 0 0 auto; padding: 7px 14px; border-radius: 999px;
+  background: #fff; border: 1px solid rgba(15,23,42,0.08);
+  font-size: 12px; font-weight: 600; color: #1c1c1c;
+  box-shadow: var(--xp-shadow-sm);
+  scroll-snap-align: start;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.xp-chip-emoji { font-size: 14px; }
+
+/* ============================================================
+   Food list page
+   ============================================================ */
+.app-home .z-cat-scroll { padding-bottom: 6px; }
+.app-home .z-cat {
+  transition: background .2s var(--xp-ease), color .2s var(--xp-ease), transform .15s var(--xp-ease), border-color .2s var(--xp-ease);
+  border: 1px solid transparent;
+}
+.app-home .z-cat:hover { transform: translateY(-1px); border-color: rgba(15,23,42,0.08); }
+.app-home .z-cat--on {
+  box-shadow: 0 4px 14px rgba(28,28,28,0.18);
+  background: linear-gradient(135deg, #1c1c1c, #2c2c2c);
+}
+
+.app-home .z-resto-card {
+  transition: transform .25s var(--xp-ease), box-shadow .25s var(--xp-ease);
+}
+.app-home .z-resto-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--xp-shadow-lg);
+}
+.app-home .z-resto-card__img {
+  position: relative;
+}
+.app-home .z-resto-card__img img {
+  transition: transform .6s var(--xp-ease);
+}
+.app-home .z-resto-card:hover .z-resto-card__img img { transform: scale(1.06); }
+.app-home .z-resto-card__img::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.32));
+  pointer-events: none;
+}
+.app-home .z-resto-card__off {
+  background: linear-gradient(135deg, #ef4f5e, #ff7e5f);
+  color: #fff; font-weight: 700;
+  box-shadow: 0 6px 14px rgba(239,79,94,0.35);
+}
+.app-home .z-resto-card__time {
+  background: rgba(255,255,255,0.92);
+  color: #1c1c1c;
+  backdrop-filter: blur(6px);
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(15,23,42,0.12);
+}
+
+/* New badges */
+.xp-badge {
+  position: absolute; z-index: 2;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 999px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.01em;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+.xp-badge--trending {
+  top: 10px; left: 10px;
+  background: linear-gradient(135deg, rgba(255, 89, 89, 0.95), rgba(255, 138, 61, 0.95));
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 89, 89, 0.35);
+}
+.xp-badge--pro {
+  top: 10px; left: 10px;
+  background: linear-gradient(135deg, #1c1c1c, #2c2c2c);
+  color: #ffd95c;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.xp-badge--new {
+  top: 10px; left: 10px;
+  background: linear-gradient(135deg, #2563eb, #4a8bff);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(37,99,235,0.35);
+}
+.xp-distance {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 11px; color: #6b7280; font-weight: 600;
+}
+.xp-distance::before { content: "📍"; font-size: 11px; }
+
+.xp-rating-pill { background: linear-gradient(135deg, #1ca05a, #2bb46c) !important; color: #fff !important; }
+.xp-rating-pill .z-rating-pill__star { color: #fff !important; }
+
+/* ============================================================
+   Restaurant detail page
+   ============================================================ */
+.app-resto .z-resto-hero__img {
+  transform: scale(1); transition: transform 8s ease-out;
+}
+.app-resto.loaded .z-resto-hero__img { transform: scale(1.08); }
+
+.app-resto .z-add {
+  background: #fff;
+  color: #ef4f5e;
+  border: 1.5px solid #ef4f5e;
+  border-radius: 10px;
+  padding: 8px 18px;
+  font-weight: 800; letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(239,79,94,0.15);
+  transition: transform .15s var(--xp-spring), box-shadow .2s, background .2s, color .2s;
+  position: relative;
+  overflow: hidden;
+}
+.app-resto .z-add:hover {
+  background: linear-gradient(135deg, #ef4f5e, #ff7e5f);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(239,79,94,0.4);
+}
+.app-resto .z-add:active { transform: scale(0.92); }
+.app-resto .z-add.xp-just-added,
+.app-resto .z-dish__action.xp-just-added > * { animation: xp-pop .35s var(--xp-spring); }
+
+.app-resto .z-qty {
+  background: linear-gradient(135deg, #ef4f5e, #ff6b75);
+  color: #fff !important;
+  border-radius: 10px;
+  font-weight: 800;
+  box-shadow: 0 6px 16px rgba(239,79,94,0.32);
+}
+.app-resto .z-qty button {
+  color: #fff !important;
+  font-size: 1.1rem; font-weight: 700;
+}
+
+.app-resto .z-dish__veg {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px;
+  border: 1.5px solid var(--xp-veg);
+  border-radius: 3px;
+  font-size: 0; color: transparent !important;
+  position: relative;
+  margin-bottom: 6px;
+}
+.app-resto .z-dish__veg::after {
+  content: ""; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--xp-veg); position: absolute;
+}
+.app-resto .z-dish__veg--nv { border-color: var(--xp-nv); }
+.app-resto .z-dish__veg--nv::after { background: var(--xp-nv); border-radius: 0; transform: rotate(45deg); width: 7px; height: 7px; }
+
+.app-resto .z-dish {
+  transition: background .2s var(--xp-ease);
+}
+.app-resto .z-dish:hover { background: #fafbfd; }
+
+/* Sticky cart bar (mobile bottom dock) */
+.xp-cart-dock {
+  position: fixed;
+  left: 12px; right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0));
+  z-index: 8500;
+  background: linear-gradient(135deg, #1ca05a, #16894c);
+  color: #fff;
+  border-radius: 16px;
+  padding: 12px 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  box-shadow: 0 14px 30px rgba(28,160,90,0.35);
+  transform: translateY(140%);
+  transition: transform .35s var(--xp-spring);
+}
+.xp-cart-dock.is-on { transform: translateY(0); }
+.xp-cart-dock__count {
+  background: rgba(255,255,255,0.2);
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px; font-weight: 700;
+}
+.xp-cart-dock__cta { font-weight: 800; display: inline-flex; align-items: center; gap: 6px; }
+.xp-cart-dock__arrow { display: inline-block; transition: transform .3s var(--xp-spring); }
+.xp-cart-dock:hover .xp-cart-dock__arrow { transform: translateX(4px); }
+
+.app-resto--has-cart .z-resto-layout { padding-bottom: 90px; }
+
+/* Confetti / order success overlay */
+.xp-success {
+  position: fixed; inset: 0; z-index: 11500;
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(8px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px;
+  animation: xp-fade-in .25s var(--xp-ease) both;
+}
+.xp-success__icon {
+  width: 96px; height: 96px; border-radius: 50%;
+  background: linear-gradient(135deg, #1ca05a, #2bb46c);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 56px; color: #fff;
+  box-shadow: 0 20px 40px rgba(28,160,90,0.4);
+  animation: xp-pop .55s var(--xp-spring) both;
+}
+.xp-success__title { font-size: 22px; font-weight: 800; color: #1c1c1c; animation: xp-fade-in .4s .15s var(--xp-ease) both; }
+.xp-success__sub { font-size: 14px; color: #6b7280; animation: xp-fade-in .4s .25s var(--xp-ease) both; }
+
+/* ============================================================
+   Grocery (Blinkit-like) polish
+   ============================================================ */
+.app-grocery .groc-search {
+  box-shadow: var(--xp-shadow-sm);
+  border: 1px solid rgba(15,23,42,0.06);
+  transition: box-shadow .2s, border-color .2s;
+}
+.app-grocery .groc-search:focus-within {
+  box-shadow: 0 12px 28px rgba(28,160,90,0.18);
+  border-color: rgba(28,160,90,0.4);
+}
+.app-grocery .groc-cats button {
+  transition: transform .15s var(--xp-spring), background .2s, color .2s, box-shadow .2s;
+}
+.app-grocery .groc-cats button:active { transform: scale(0.94); }
+.app-grocery .groc-cats button.is-on,
+.app-grocery .groc-cats .groc-cat--on {
+  box-shadow: 0 8px 20px rgba(28,160,90,0.28);
+}
+.app-grocery .groc-card {
+  transition: transform .2s var(--xp-ease), box-shadow .2s var(--xp-ease);
+}
+.app-grocery .groc-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--xp-shadow-lg);
+}
+.app-grocery .groc-card__img {
+  transition: transform .4s var(--xp-ease);
+}
+.app-grocery .groc-card:hover .groc-card__img { transform: scale(1.08); }
+.app-grocery .groc-add {
+  transition: transform .15s var(--xp-spring);
+}
+.app-grocery .groc-add:active { transform: scale(0.92); }
+.app-grocery .groc-add.xp-just-added { animation: xp-pop .35s var(--xp-spring); }
+
+.app-grocery .svc-cart-bar {
+  background: linear-gradient(135deg, #0c831f, #15a363) !important;
+  box-shadow: 0 -10px 30px rgba(12,131,31,0.25);
+  animation: xp-fade-in .35s var(--xp-spring) both;
+}
+
+/* ============================================================
+   Cab / Parcel polish
+   ============================================================ */
+.app-cab .cab-vehicle, .app-parcel .parcel-vehicle {
+  transition: transform .2s var(--xp-ease), box-shadow .2s var(--xp-ease), border-color .2s;
+}
+.app-cab .cab-vehicle:hover, .app-parcel .parcel-vehicle:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--xp-shadow);
+}
+.app-cab .cab-vehicle--on { box-shadow: 0 10px 20px rgba(10,124,255,0.18); }
+
+/* ============================================================
+   Reduce motion preference
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

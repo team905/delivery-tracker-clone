@@ -46,7 +46,13 @@ function toast(msg, ms = 2200) {
   toast._t = setTimeout(() => els.toast.classList.remove("is-on"), ms);
 }
 
+function showGridSkeleton() {
+  if (!els.grid || !window.XP) return;
+  els.grid.innerHTML = XP.skeletonCards(8, "product");
+}
+
 async function load() {
+  showGridSkeleton();
   const res = await fetch("/api/grocery/stores");
   const data = await res.json();
   const store = data.stores?.[0];
@@ -135,13 +141,24 @@ function updateCartBar() {
   els.cartBar.classList.toggle("is-on", totals.n > 0);
 }
 
-function addToCart(id, delta = 1) {
+function addToCart(id, delta = 1, originBtn) {
   const p = state.products.find((x) => x.id === id);
   if (!p) return;
   const cur = state.cart.get(id) || { id, name: p.name, price: p.price, unit: p.unit, qty: 0 };
+  const before = cur.qty;
   cur.qty = Math.max(0, Math.min(20, cur.qty + delta));
   if (cur.qty === 0) state.cart.delete(id);
   else state.cart.set(id, cur);
+
+  if (window.XP && delta > 0 && cur.qty > before && originBtn) {
+    XP.flyToCart(originBtn, els.cartBar, { color: "radial-gradient(circle at 30% 30%,#fff,#0c831f 65%)" });
+    originBtn.classList.add("xp-just-added");
+    setTimeout(() => originBtn.classList.remove("xp-just-added"), 400);
+    if (delta > 0 && before === 0) {
+      XP.toast(`${p.name} added`, { kind: "success", emoji: "🥬", duration: 1300 });
+    }
+  }
+
   renderGrid();
   updateCartBar();
 }
@@ -159,7 +176,7 @@ els.grid.addEventListener("click", (e) => {
   if (!b) return;
   const id = b.dataset.id;
   const act = b.dataset.act;
-  if (act === "add" || act === "inc") addToCart(id, 1);
+  if (act === "add" || act === "inc") addToCart(id, 1, b);
   else if (act === "dec") addToCart(id, -1);
 });
 
@@ -276,9 +293,20 @@ els.pay.addEventListener("click", async () => {
     });
     if (!r.ok) throw new Error((await r.json()).error || "Failed");
     const data = await r.json();
-    window.location.href = `/track.html?orderId=${data.orderId}`;
+    if (window.XP) {
+      XP.success({
+        icon: "⚡",
+        title: "Order placed!",
+        sub: "We'll deliver in minutes — tracking now",
+        duration: 1400,
+        onDone: () => { window.location.href = `/track.html?orderId=${data.orderId}`; }
+      });
+    } else {
+      window.location.href = `/track.html?orderId=${data.orderId}`;
+    }
   } catch (e) {
     toast("Could not place order: " + e.message);
+    if (window.XP) XP.toast("Could not place order", { kind: "error", emoji: "⚠️" });
     els.pay.disabled = false;
     renderSummary();
   }

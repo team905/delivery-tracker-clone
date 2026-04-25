@@ -240,7 +240,17 @@ els.pay.addEventListener("click", async () => {
     });
     if (!res.ok) throw new Error((await res.json()).error || "Could not order");
     const data = await res.json();
-    window.location.href = `/track.html?orderId=${data.orderId}`;
+    if (window.XP) {
+      XP.success({
+        icon: "🛍",
+        title: "Order placed!",
+        sub: "We're packing it for you — tracking now",
+        duration: 1300,
+        onDone: () => { window.location.href = `/track.html?orderId=${data.orderId}`; }
+      });
+    } else {
+      window.location.href = `/track.html?orderId=${data.orderId}`;
+    }
   } catch (e) {
     toast(e.message);
     els.pay.disabled = false;

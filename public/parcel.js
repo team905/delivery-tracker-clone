@@ -316,7 +316,17 @@ els.book.addEventListener("click", async () => {
     });
     if (!res.ok) throw new Error((await res.json()).error || "Could not book");
     const data = await res.json();
-    window.location.href = `/track.html?orderId=${data.orderId}`;
+    if (window.XP) {
+      XP.success({
+        icon: "📦",
+        title: "Pickup booked!",
+        sub: "A rider is being assigned — tracking now",
+        duration: 1300,
+        onDone: () => { window.location.href = `/track.html?orderId=${data.orderId}`; }
+      });
+    } else {
+      window.location.href = `/track.html?orderId=${data.orderId}`;
+    }
   } catch (e) {
     toast(e.message);
     updateBookBtn();

@@ -1,4 +1,8 @@
-/* Super-app landing — loads the service registry and renders the picker tiles. */
+/* Super-app landing — modernized.
+ * Loads service registry, renders animated tiles, time-aware greeting,
+ * dynamic "Resume" chips (recent orders if signed in), and a soft skeleton
+ * while data is loading. No new functions; just polish on what exists.
+ */
 
 const grid = document.getElementById("servicesGrid");
 const quickRow = document.getElementById("quickRow");
@@ -10,6 +14,13 @@ const QUICK_TO_PATH = {
   grocery: "/grocery.html",
   ride: "/cab.html"
 };
+
+/* ------------ Skeletons while we wait ------------ */
+function showServicesSkeleton() {
+  if (!grid || !window.XP) return;
+  grid.innerHTML = XP.skeletonCards(6, "tile");
+}
+showServicesSkeleton();
 
 async function loadServices() {
   try {
@@ -29,8 +40,8 @@ function render(services) {
   }
   grid.innerHTML = services
     .map(
-      (s) => `
-      <a class="super-tile" href="${s.entryPath}" data-service="${s.id}" style="--tile-bg:${s.gradient};--tile-color:${s.color}">
+      (s, i) => `
+      <a class="super-tile xp-fade-in" style="--tile-bg:${s.gradient};--tile-color:${s.color};animation-delay:${i * 50}ms" href="${s.entryPath}" data-service="${s.id}" data-xp-tap>
         <span class="super-tile__glow" aria-hidden="true"></span>
         <span class="super-tile__emoji" aria-hidden="true">${s.emoji}</span>
         <span class="super-tile__title">${s.name}</span>
@@ -40,11 +51,48 @@ function render(services) {
       </a>`
     )
     .join("");
+  if (window.XP) XP.attachRipple(".super-tile", grid);
+}
+
+/* ------------ Quick / resume row: prefer last orders if signed in ------------ */
+async function refreshQuickRow() {
+  if (!quickRow) return;
+  try {
+    const auth = window.Auth;
+    if (!auth) return;
+    const u = await auth.me();
+    if (!u || u.role !== "customer") return;
+    const data = await auth.api("/api/customer/orders");
+    if (!data || !Array.isArray(data.orders) || data.orders.length === 0) return;
+    const recent = data.orders.slice(0, 3);
+    const map = {
+      food: { emoji: "🍕", path: "/food.html", label: "Reorder" },
+      grocery: { emoji: "🛒", path: "/grocery.html", label: "Quick basket" },
+      cab: { emoji: "🚖", path: "/cab.html", label: "Book a ride" },
+      parcel: { emoji: "📦", path: "/parcel.html", label: "Send parcel" },
+      shop: { emoji: "🛍", path: "/shop.html", label: "Shop again" }
+    };
+    quickRow.innerHTML = recent
+      .map((o) => {
+        const m = map[o.serviceType] || map.food;
+        const sub = o.businessName || o.businessId || "Recent order";
+        return `
+          <a class="super-quick xp-fade-in" href="${m.path}" data-xp-tap>
+            <span class="super-quick__emoji" aria-hidden="true">${m.emoji}</span>
+            <span class="super-quick__title">${m.label}</span>
+            <span class="super-quick__sub">${sub}</span>
+          </a>`;
+      })
+      .join("");
+    if (window.XP) XP.attachRipple(".super-quick", quickRow);
+  } catch (e) {
+    /* silently keep static placeholders */
+  }
 }
 
 quickRow?.addEventListener("click", (e) => {
   const btn = e.target.closest(".super-quick");
-  if (!btn) return;
+  if (!btn || btn.tagName === "A") return;
   const path = QUICK_TO_PATH[btn.dataset.action];
   if (path) window.location.href = path;
 });
@@ -66,12 +114,15 @@ locPill?.addEventListener("click", () => {
           })
         );
       } catch {}
+      if (window.XP) XP.toast("Location updated", { kind: "success", emoji: "📍" });
     },
     () => {
       locText.textContent = "Allow location to personalize";
+      if (window.XP) XP.toast("Location permission denied", { kind: "error", emoji: "⚠️" });
     },
     { enableHighAccuracy: true, timeout: 6000, maximumAge: 30000 }
   );
 });
 
 loadServices();
+refreshQuickRow();

@@ -39,7 +39,13 @@ const descriptions = [
   "Rich, creamy Italian dessert layered in coffee."
 ];
 
+function showMenuSkeleton() {
+  if (!menuList || !window.XP) return;
+  menuList.innerHTML = `<div style="display:grid;gap:14px;padding:8px 0">${XP.skeletonCards(4, "menu")}</div>`;
+}
+
 async function loadRestaurant() {
+  showMenuSkeleton();
   const res = await fetch("/api/restaurants");
   const data = await res.json();
   const restaurant = data.restaurants.find((r) => r.id === restaurantId);
@@ -52,6 +58,8 @@ async function loadRestaurant() {
   renderHero();
   renderMenu();
   document.title = `${restaurant.name} · zomato`;
+  /* Trigger the slow parallax zoom on the hero */
+  requestAnimationFrame(() => document.body.classList.add("loaded"));
 }
 
 function renderHero() {
@@ -129,19 +137,32 @@ function refreshMenuActions() {
   });
 
   menuList.querySelectorAll("[data-add]").forEach((btn) => {
-    btn.addEventListener("click", () => addToCart(btn.dataset.add));
+    btn.addEventListener("click", (e) => addToCart(btn.dataset.add, e.currentTarget));
   });
   menuList.querySelectorAll("[data-qty]").forEach((btn) => {
     btn.addEventListener("click", () => changeQty(btn.dataset.qty, Number(btn.dataset.delta)));
   });
 }
 
-function addToCart(itemId) {
+function addToCart(itemId, originBtn) {
   const item = state.restaurant.menu.find((m) => m.id === itemId);
   if (!item) return;
   const existing = state.cart.find((c) => c.id === itemId);
   if (existing) existing.qty += 1;
   else state.cart.push({ ...item, qty: 1 });
+
+  if (window.XP && originBtn) {
+    XP.flyToCart(originBtn, document.getElementById("xpCartDock") || document.querySelector(".z-cart"));
+    XP.toast(`${item.name} added`, { kind: "success", emoji: "🛒", duration: 1500 });
+    /* pop-class animation on the action cell */
+    const cell = document.getElementById(`action-${itemId}`);
+    if (cell) {
+      cell.classList.remove("xp-just-added");
+      void cell.offsetWidth;
+      cell.classList.add("xp-just-added");
+    }
+  }
+
   renderCart();
   refreshMenuActions();
 }
@@ -157,6 +178,7 @@ function changeQty(itemId, delta) {
 
 function renderCart() {
   document.body.classList.toggle("app-resto--has-cart", state.cart.length > 0);
+  syncStickyCartDock();
   if (!state.cart.length) {
     cartItems.className = "cart-empty z-cart__items";
     cartItems.textContent = "Add items to start an order";
@@ -201,6 +223,28 @@ function renderCart() {
     checkoutBtn.textContent = `Pay ₹${total}  ·  ${n} ${n === 1 ? "item" : "items"}`;
   }
 }
+
+/* Sync the sticky bottom dock with current cart state. */
+function syncStickyCartDock() {
+  const dock = document.getElementById("xpCartDock");
+  if (!dock) return;
+  const n = state.cart.reduce((s, c) => s + c.qty, 0);
+  if (!n) {
+    dock.classList.remove("is-on");
+    return;
+  }
+  const subtotal = state.cart.reduce((s, c) => s + c.price * c.qty, 0);
+  const tax = Math.round(subtotal * 0.05);
+  const total = subtotal + 29 + tax;
+  document.getElementById("xpCartCount").textContent = `${n} ${n === 1 ? "item" : "items"} added`;
+  document.getElementById("xpCartTotal").textContent = `View cart · ₹${total}`;
+  dock.classList.add("is-on");
+}
+
+document.getElementById("xpCartGo")?.addEventListener("click", () => {
+  if (!state.cart.length) return;
+  openCheckout();
+});
 
 /* === Checkout === */
 let addressMap;
@@ -305,9 +349,20 @@ document.getElementById("placeOrderBtn").addEventListener("click", async () => {
     });
     if (!res.ok) throw new Error("failed");
     const data = await res.json();
-    window.location.href = `/track.html?orderId=${data.orderId}`;
+    if (window.XP) {
+      XP.success({
+        icon: "🎉",
+        title: "Order placed!",
+        sub: "Hang tight — we're connecting you to a rider",
+        duration: 1400,
+        onDone: () => { window.location.href = `/track.html?orderId=${data.orderId}`; }
+      });
+    } else {
+      window.location.href = `/track.html?orderId=${data.orderId}`;
+    }
   } catch {
     orderMsg.textContent = "Could not place order. Please try again.";
+    if (window.XP) XP.toast("Could not place order", { kind: "error", emoji: "⚠️" });
   }
 });
 
@@ -319,6 +374,7 @@ document.querySelector(".z-resto-topbar__share")?.addEventListener("click", asyn
       await navigator.share({ title: state.restaurant?.name || "Restaurant", url });
     } else {
       await navigator.clipboard.writeText(url);
+      if (window.XP) XP.toast("Link copied to clipboard", { kind: "success", emoji: "🔗" });
     }
   } catch {}
 });
