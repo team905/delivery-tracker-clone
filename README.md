@@ -45,3 +45,19 @@ If 4010 is busy, the server auto-falls back to 4011, 4012, ...
 
 - `join-order` / `tracking-update` (customer)
 - `join-riders` / `rider-orders` / `new-order` (rider console)
+
+## CI/CD (GitHub -> Render auto deploy)
+
+This repo includes `.github/workflows/render-auto-deploy.yml`.
+
+To enable zero-touch deployment on every push to `main`:
+
+1. In Render, open your web service.
+2. Go to `Settings` -> `Deploy Hook` and create/copy a deploy hook URL.
+3. In GitHub, open this repo -> `Settings` -> `Secrets and variables` -> `Actions`.
+4. Add a new repository secret:
+   - Name: `RENDER_DEPLOY_HOOK_URL`
+   - Value: `<your render deploy hook url>`
+5. Push to `main`.
+
+Each push to `main` now triggers Render deploy automatically. You can also run it manually from GitHub Actions (`workflow_dispatch`).
