@@ -179,7 +179,12 @@ TILE_LAYERS.dark = [
   )
 ];
 
-let currentMapMode = localStorage.getItem("trackMapMode") || (isNightNow() ? "dark" : "standard");
+/* Default to SATELLITE on first entry. We also one-time-migrate users
+ * whose previous default was the auto-picked standard/dark, while still
+ * respecting any explicit choice they made via the layer toggle. */
+const userManual = localStorage.getItem("trackMapMode:manual") === "1";
+const savedMapMode = localStorage.getItem("trackMapMode");
+let currentMapMode = userManual && savedMapMode ? savedMapMode : "satellite";
 
 function applyMapMode(mode) {
   Object.values(TILE_LAYERS)
@@ -192,7 +197,17 @@ function applyMapMode(mode) {
   document.body.dataset.mapMode = mode;
   localStorage.setItem("trackMapMode", mode);
   const btn = document.getElementById("layerBtn");
-  if (btn) btn.classList.toggle("active", mode !== "standard");
+  if (btn) {
+    /* Satellite is the default — show "active" only when the user has
+     * switched away from it. */
+    btn.classList.toggle("active", mode !== "satellite");
+    btn.setAttribute(
+      "title",
+      mode === "satellite" ? "Tap for street view"
+        : mode === "standard" ? "Tap for dark map"
+        : "Tap for satellite view"
+    );
+  }
   // Ensure tiles re-layout after a mode switch (fixes blank map on some DPR / mobile views).
   setTimeout(() => {
     try {
@@ -206,14 +221,13 @@ function applyMapMode(mode) {
   }, 180);
 }
 applyMapMode(currentMapMode);
-// Re-check night every 30 min if user hasn't manually overridden
+/* Night auto-switch only kicks in if the user has explicitly chosen a
+ * non-satellite mode. New default is satellite, so we leave it alone. */
 setInterval(() => {
-  if (!localStorage.getItem("trackMapMode:manual")) {
-    const shouldBe = isNightNow() ? "dark" : "standard";
-    if (shouldBe !== currentMapMode && currentMapMode !== "satellite") {
-      applyMapMode(shouldBe);
-    }
-  }
+  if (!localStorage.getItem("trackMapMode:manual")) return;
+  if (currentMapMode === "satellite") return;
+  const shouldBe = isNightNow() ? "dark" : "standard";
+  if (shouldBe !== currentMapMode) applyMapMode(shouldBe);
 }, 30 * 60 * 1000);
 
 const scooterSvg = `
@@ -296,12 +310,14 @@ centerBtn.addEventListener("click", () => {
   }
 });
 layerBtn.addEventListener("click", () => {
-  const order = ["standard", "dark", "satellite"];
+  /* Satellite is the default; tapping cycles to a clean street view, then
+   * dark, then back to satellite. */
+  const order = ["satellite", "standard", "dark"];
   const idx = order.indexOf(currentMapMode);
   const next = order[(idx + 1) % order.length];
   applyMapMode(next);
   localStorage.setItem("trackMapMode:manual", "1");
-  const labels = { standard: "Standard view", dark: "Dark map", satellite: "Satellite view" };
+  const labels = { standard: "Street view", dark: "Dark map", satellite: "Satellite view" };
   showToast(labels[next]);
 });
 overviewBtn.addEventListener("click", () => {

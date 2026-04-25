@@ -474,3 +474,96 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============================================================
+   GLOBAL LAYOUT FIX — make sure no scrollable content or popup
+   gets eaten by the fixed bottom tabbar / cart bar.
+   The tabbar uses z-index 100 — modals have to live above that.
+   Uses :has() (modern Chrome 105+/Safari 15.4+/Firefox 121+)
+   with explicit fallbacks where critical.
+   ============================================================ */
+
+:root {
+  --tabbar-h: calc(56px + env(safe-area-inset-bottom, 0px));
+  --cartbar-h: calc(70px + env(safe-area-inset-bottom, 0px));
+}
+
+/* 1) Add bottom padding to every page that has the tabbar so the
+      scroll container leaves room. We override per-page declarations
+      that were set too low (they used 64px which is shorter than the
+      tabbar plus the safe-area inset on modern phones). */
+body:has(> nav.z-tabbar),
+body.app-home,
+body.app-rider,
+body.app-super,
+body.app-grocery,
+body.app-shop,
+body.app-parcel {
+  padding-bottom: calc(var(--tabbar-h) + 12px) !important;
+}
+
+/* 2) When a sticky cart bar is present and visible, push content up
+      a bit more so the last items aren't hidden behind it. */
+body:has(.svc-cart-bar.is-on),
+body:has(.shop-cart-bar.is-on) {
+  padding-bottom: calc(var(--tabbar-h) + var(--cartbar-h) + 8px) !important;
+}
+
+/* 3) The shared checkout modal sits behind the tabbar (modal z80 vs
+      tabbar z100). Lift the modal layer above the tabbar AND give the
+      card itself enough bottom padding so the action buttons clear
+      the safe area + tabbar (in case the tabbar isn't hidden). */
+.svc-checkout-modal { z-index: 200 !important; }
+.svc-checkout-modal__card {
+  max-height: 88dvh !important;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 24px) !important;
+}
+
+/* 4) Restaurant page checkout sheet & cart panel — same z-index lift. */
+.app-resto .z-resto-modal { z-index: 200 !important; }
+
+/* 5) Cab2 modal already at z 90 — bump above tabbar. */
+.cab2-modal { z-index: 250 !important; }
+
+/* 6) Hide the bottom tabbar entirely while a full-screen modal /
+      checkout is open so it can never overlap action buttons. */
+body:has(.svc-checkout-modal:not([hidden])) .z-tabbar,
+body:has(.parcel-modal:not([hidden])) .z-tabbar,
+body:has(.cab2-modal:not([hidden])) .z-tabbar,
+body:has(.z-resto-modal.is-on) .z-tabbar,
+body.z-modal-on .z-tabbar {
+  transform: translateY(110%);
+  transition: transform .25s var(--xp-ease);
+  pointer-events: none;
+}
+
+/* Lift parcel modal too */
+.parcel-modal { z-index: 200 !important; }
+
+/* 7) Make sticky cart bars sit ABOVE the tabbar (was bottom: 60px;
+      that's fine, but we ensure they stay above in z-order). */
+.svc-cart-bar, .shop-cart-bar { z-index: 110 !important; }
+
+/* 8) The cab2 confirm button used to overlap with absent tabbar
+      (cab page hides the tabbar in cab2.css); nothing to do here.
+      For cab2 vehicle sheet and start sheet we ensure overflow has
+      enough bottom padding for the safe area. */
+.cab2-sheet { padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important; }
+
+/* 9) For pages with a sticky bottom CTA (like restaurant cart bar
+      or cab confirm), make sure scroll content has matching padding. */
+.app-resto:has(.z-cart-bar.is-on) .z-resto-menu {
+  padding-bottom: calc(180px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* 10) Spinner used in loading rows. */
+.xp-spinner {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(0,0,0,0.15);
+  border-top-color: var(--xp-accent, #0a5cff);
+  border-radius: 50%;
+  animation: xp-spin .8s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
